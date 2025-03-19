@@ -752,8 +752,8 @@ def init():
     
     # Models to preload
     models_to_preload = [
-        "realvisxlV40_v40LightningBakedvae.safetensors",
-        "pixelArtDiffusionXL_pixelWorld.safetensors"
+        # "realvisxlV40_v40LightningBakedvae.safetensors",
+        # "pixelArtDiffusionXL_pixelWorld.safetensors"
     ]
 
     # Check if FLUX environment variable is set to true
@@ -762,17 +762,17 @@ def init():
         logger.info("FLUX environment variable is set to true, adding flux1-dev.safetensors to preload list")
     
     # Preload models
-    preloaded = []
-    for checkpoint_name in models_to_preload:
-        try:
-            result = preload_weights(checkpoint_name)
-            if result is not None:
-                preloaded.append(checkpoint_name)
-                logger.info(f"Successfully preloaded: {checkpoint_name}")
-        except Exception as e:
-            logger.error(f"Failed to preload {checkpoint_name}: {str(e)}")
+    # preloaded = []
+    # for checkpoint_name in models_to_preload:
+    #     try:
+    #         result = preload_weights(checkpoint_name)
+    #         if result is not None:
+    #             preloaded.append(checkpoint_name)
+    #             logger.info(f"Successfully preloaded: {checkpoint_name}")
+    #     except Exception as e:
+    #         logger.error(f"Failed to preload {checkpoint_name}: {str(e)}")
     
-    logger.info(f"Preloaded {len(preloaded)} models: {preloaded}")
+    # logger.info(f"Preloaded {len(preloaded)} models: {preloaded}")
 
 def download_lora_files(loras):
     """Download lora files from network paths to disk.
