@@ -14,38 +14,39 @@
 
 <!-- toc -->
 
-- [Quickstart](#quickstart)
-- [Features](#features)
-- [Config](#config)
-  * [Upload image to AWS S3](#upload-image-to-aws-s3)
-- [Use the Docker image on RunPod](#use-the-docker-image-on-runpod)
-  * [Create your template (optional)](#create-your-template-optional)
-  * [Create your endpoint](#create-your-endpoint)
-  * [GPU recommendations](#gpu-recommendations)
-- [API specification](#api-specification)
-  * [JSON Request Body](#json-request-body)
-  * [Fields](#fields)
-    + ["input.images"](#inputimages)
-- [Interact with your RunPod API](#interact-with-your-runpod-api)
-  * [Health status](#health-status)
-  * [Generate an image](#generate-an-image)
-    + [Example request for SDXL with cURL](#example-request-for-sdxl-with-curl)
-- [How to get the workflow from ComfyUI?](#how-to-get-the-workflow-from-comfyui)
-- [Bring Your Own Models and Nodes](#bring-your-own-models-and-nodes)
-  * [Network Volume](#network-volume)
-  * [Custom Docker Image](#custom-docker-image)
-    + [Adding Custom Models](#adding-custom-models)
-    + [Adding Custom Nodes](#adding-custom-nodes)
-    + [Building the Image](#building-the-image)
-- [Local testing](#local-testing)
-  * [Setup](#setup)
-    + [Setup for Windows](#setup-for-windows)
-  * [Testing the RunPod handler](#testing-the-runpod-handler)
-  * [Local API](#local-api)
-    + [Access the local Worker API](#access-the-local-worker-api)
-    + [Access local ComfyUI](#access-local-comfyui)
-- [Automatically deploy to Docker hub with GitHub Actions](#automatically-deploy-to-docker-hub-with-github-actions)
-- [Acknowledgments](#acknowledgments)
+- [runpod-worker-comfy](#runpod-worker-comfy)
+  - [Quickstart](#quickstart)
+  - [Features](#features)
+  - [Config](#config)
+    - [Upload image to AWS S3](#upload-image-to-aws-s3)
+  - [Use the Docker image on RunPod](#use-the-docker-image-on-runpod)
+    - [Create your template (optional)](#create-your-template-optional)
+    - [Create your endpoint](#create-your-endpoint)
+    - [GPU recommendations](#gpu-recommendations)
+  - [API specification](#api-specification)
+    - [JSON Request Body](#json-request-body)
+    - [Fields](#fields)
+      - ["input.images"](#inputimages)
+  - [Interact with your RunPod API](#interact-with-your-runpod-api)
+    - [Health status](#health-status)
+    - [Generate an image](#generate-an-image)
+      - [Example request for SDXL with cURL](#example-request-for-sdxl-with-curl)
+  - [How to get the workflow from ComfyUI?](#how-to-get-the-workflow-from-comfyui)
+  - [Bring Your Own Models and Nodes](#bring-your-own-models-and-nodes)
+    - [Network Volume](#network-volume)
+    - [Custom Docker Image](#custom-docker-image)
+      - [Adding Custom Models](#adding-custom-models)
+      - [Adding Custom Nodes](#adding-custom-nodes)
+      - [Building the Image](#building-the-image)
+  - [Local testing](#local-testing)
+    - [Setup](#setup)
+      - [Setup for Windows](#setup-for-windows)
+    - [Testing the RunPod handler](#testing-the-runpod-handler)
+    - [Local API](#local-api)
+      - [Access the local Worker API](#access-the-local-worker-api)
+      - [Access local ComfyUI](#access-local-comfyui)
+  - [Automatically deploy to Docker hub with GitHub Actions](#automatically-deploy-to-docker-hub-with-github-actions)
+  - [Acknowledgments](#acknowledgments)
 
 <!-- tocstop -->
 
@@ -331,13 +332,13 @@ Build your customized Docker image locally:
 
 ```bash
 # Build the base image
-docker build -t <your_dockerhub_username>/runpod-worker-comfy:dev-base --target base --platform linux/amd64 .
+docker build -t howardwkim/runpod-worker-comfy:dev-base --target base --platform linux/amd64 .
 
 # Build the SDXL image
-docker build --build-arg MODEL_TYPE=sdxl -t <your_dockerhub_username>/runpod-worker-comfy:dev-sdxl --platform linux/amd64 .
+docker build --build-arg MODEL_TYPE=sdxl -t howardwkim/runpod-worker-comfy:dev-sdxl --platform linux/amd64 .
 
 # Build the SD3 image
-docker build --build-arg MODEL_TYPE=sd3 --build-arg HUGGINGFACE_ACCESS_TOKEN=<your-huggingface-token> -t <your_dockerhub_username>/runpod-worker-comfy:dev-sd3 --platform linux/amd64 .
+docker build --build-arg MODEL_TYPE=sd3 --build-arg HUGGINGFACE_ACCESS_TOKEN=<your-huggingface-token> -t howardwkim/runpod-worker-comfy:dev-sd3 --platform linux/amd64 .
 ```
 
 > [!NOTE]  
