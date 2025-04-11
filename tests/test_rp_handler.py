@@ -123,13 +123,13 @@ class TestRunpodWorkerComfy(unittest.TestCase):
         self.assertEqual(result, test_data)
 
     @patch("rp_handler.os.path.exists")
-    @patch("rp_handler.rp_upload.upload_image")
+    @patch("rp_handler.base64_encode")
     @patch.dict(
         os.environ, {"COMFY_OUTPUT_PATH": RUNPOD_WORKER_COMFY_TEST_RESOURCES_IMAGES}
     )
-    def test_bucket_endpoint_not_configured(self, mock_upload_image, mock_exists):
+    def test_bucket_endpoint_not_configured(self, mock_base64_encode, mock_exists):
         mock_exists.return_value = True
-        mock_upload_image.return_value = "simulated_uploaded/image.png"
+        mock_base64_encode.return_value = "base64_encoded_image_data"
 
         outputs = {
             "node_id": {"images": [{"filename": "ComfyUI_00001_.png", "subfolder": ""}]}
@@ -139,6 +139,11 @@ class TestRunpodWorkerComfy(unittest.TestCase):
         result = rp_handler.process_output_images(outputs, job_id)
 
         self.assertEqual(result["status"], "success")
+        self.assertIsInstance(result["message"], list)
+        self.assertEqual(len(result["message"]), 1)
+        self.assertEqual(result["message"][0]["node_id"], "node_id")
+        self.assertEqual(result["message"][0]["imageType"], "base64")
+        self.assertEqual(result["message"][0]["image"], "base64_encoded_image_data")
 
     @patch("rp_handler.os.path.exists")
     @patch("rp_handler.rp_upload.upload_image")
@@ -165,7 +170,11 @@ class TestRunpodWorkerComfy(unittest.TestCase):
 
         # Assertions
         self.assertEqual(result["status"], "success")
-        self.assertEqual(result["message"], "http://example.com/uploaded/image.png")
+        self.assertIsInstance(result["message"], list)
+        self.assertEqual(len(result["message"]), 1)
+        self.assertEqual(result["message"][0]["node_id"], "node_id")
+        self.assertEqual(result["message"][0]["imageType"], "url")
+        self.assertEqual(result["message"][0]["image"], "http://example.com/uploaded/image.png")
         mock_upload_image.assert_called_once_with(
             job_id, "./test_resources/images/test/ComfyUI_00001_.png"
         )
@@ -197,9 +206,13 @@ class TestRunpodWorkerComfy(unittest.TestCase):
 
         result = rp_handler.process_output_images(outputs, job_id)
 
-        # Check if the image was saved to the 'simulated_uploaded' directory
-        self.assertIn("simulated_uploaded", result["message"])
+        # Assertions for the new format
         self.assertEqual(result["status"], "success")
+        self.assertIsInstance(result["message"], list)
+        self.assertEqual(len(result["message"]), 1)
+        self.assertEqual(result["message"][0]["node_id"], "node_id")
+        self.assertEqual(result["message"][0]["imageType"], "url")
+        self.assertIn("simulated_uploaded", result["message"][0]["image"])
 
     @patch("rp_handler.requests.post")
     def test_upload_images_successful(self, mock_post):
