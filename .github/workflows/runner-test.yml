@@ -14,3 +14,6 @@ jobs:
 
       - name: Confirm Runner Connection
         run: echo "Successfully connected to and ran on self-hosted runner."
+
+      - name: Check Disk Space
+        run: df -h
