@@ -1,0 +1,16 @@
+name: Self-Hosted Runner Test
+
+on:
+  push:
+    branches: ["**"]
+
+jobs:
+  test-runner:
+    name: Check Runner Connectivity
+    runs-on: [self-hosted, linux]
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Confirm Runner Connection
+        run: echo "Successfully connected to and ran on self-hosted runner."
