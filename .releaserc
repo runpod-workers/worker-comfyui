@@ -15,7 +15,7 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "sed -i \"s/timpietruskyblibla\\/runpod-worker-comfy:[0-9][0-9]*\\.[0-9][0-9]*\\.[0-9][0-9]*/timpietruskyblibla\\/runpod-worker-comfy:${nextRelease.version}/g\" README.md"
+        "prepareCmd": "sed -i \"s/runpod\\/worker-comfyui:[0-9][0-9]*\\.[0-9][0-9]*\\.[0-9][0-9]*/runpod\\/worker-comfyui:${nextRelease.version}/g\" README.md"
       }
     ],
     [

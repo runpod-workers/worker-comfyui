@@ -8,7 +8,7 @@ on:
 
 jobs:
   release:
-    runs-on: ubuntu-latest-l
+    runs-on: [self-hosted, linux]
     if: ${{ !contains(github.event.head_commit.message, 'chore(release)') }}
     permissions:
       contents: write
@@ -58,7 +58,7 @@ jobs:
           additional-packages: |
             ['@semantic-release/git', '@semantic-release/changelog', '@semantic-release/exec']
         env:
-          GITHUB_TOKEN: ${{ secrets.BLIBLA_SEMANTIC_RELEASE }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
 
       - name: Set environment variables
         if: steps.semanticrelease.outputs.new-release-published == 'true'

@@ -85,7 +85,7 @@ def check_server(url, retries=500, delay=50):
 
             # If the response status code is 200, the server is up and running
             if response.status_code == 200:
-                print(f"runpod-worker-comfy - API is reachable")
+                print(f"worker-comfyui - API is reachable")
                 return True
         except requests.RequestException as e:
             # If an exception occurs, the server may not be ready
@@ -95,7 +95,7 @@ def check_server(url, retries=500, delay=50):
         time.sleep(delay / 1000)
 
     print(
-        f"runpod-worker-comfy - Failed to connect to server at {url} after {retries} attempts."
+        f"worker-comfyui - Failed to connect to server at {url} after {retries} attempts."
     )
     return False
 
@@ -117,7 +117,7 @@ def upload_images(images):
     responses = []
     upload_errors = []
 
-    print(f"runpod-worker-comfy - image(s) upload")
+    print(f"worker-comfyui - image(s) upload")
 
     for image in images:
         name = image["name"]
@@ -138,14 +138,14 @@ def upload_images(images):
             responses.append(f"Successfully uploaded {name}")
 
     if upload_errors:
-        print(f"runpod-worker-comfy - image(s) upload with errors")
+        print(f"worker-comfyui - image(s) upload with errors")
         return {
             "status": "error",
             "message": "Some images failed to upload",
             "details": upload_errors,
         }
 
-    print(f"runpod-worker-comfy - image(s) upload complete")
+    print(f"worker-comfyui - image(s) upload complete")
     return {
         "status": "success",
         "message": "All images uploaded successfully",
@@ -239,34 +239,30 @@ def process_output_images(outputs, job_id):
             for image in node_output["images"]:
                 output_images = os.path.join(image["subfolder"], image["filename"])
 
-    print(f"runpod-worker-comfy - image generation is done")
+    print(f"worker-comfyui - image generation is done")
 
     # expected image output folder
     local_image_path = f"{COMFY_OUTPUT_PATH}/{output_images}"
 
-    print(f"runpod-worker-comfy - {local_image_path}")
+    print(f"worker-comfyui - {local_image_path}")
 
     # The image is in the output folder
     if os.path.exists(local_image_path):
         if os.environ.get("BUCKET_ENDPOINT_URL", False):
             # URL to image in AWS S3
             image = rp_upload.upload_image(job_id, local_image_path)
-            print(
-                "runpod-worker-comfy - the image was generated and uploaded to AWS S3"
-            )
+            print("worker-comfyui - the image was generated and uploaded to AWS S3")
         else:
             # base64 image
             image = base64_encode(local_image_path)
-            print(
-                "runpod-worker-comfy - the image was generated and converted to base64"
-            )
+            print("worker-comfyui - the image was generated and converted to base64")
 
         return {
             "status": "success",
             "message": image,
         }
     else:
-        print("runpod-worker-comfy - the image does not exist in the output folder")
+        print("worker-comfyui - the image does not exist in the output folder")
         return {
             "status": "error",
             "message": f"the image does not exist in the specified output folder: {local_image_path}",
@@ -314,12 +310,12 @@ def handler(job):
     try:
         queued_workflow = queue_workflow(workflow)
         prompt_id = queued_workflow["prompt_id"]
-        print(f"runpod-worker-comfy - queued workflow with ID {prompt_id}")
+        print(f"worker-comfyui - queued workflow with ID {prompt_id}")
     except Exception as e:
         return {"error": f"Error queuing workflow: {str(e)}"}
 
     # Poll for completion
-    print(f"runpod-worker-comfy - wait until image generation is complete")
+    print(f"worker-comfyui - wait until image generation is complete")
     retries = 0
     try:
         while retries < COMFY_POLLING_MAX_RETRIES:
