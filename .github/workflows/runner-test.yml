@@ -17,3 +17,6 @@ jobs:
 
       - name: Check Disk Space
         run: df -h
+
+      - name: Check Docker Disk Usage
+        run: docker system df
