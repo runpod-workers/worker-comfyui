@@ -2,9 +2,9 @@ name: Development
 
 on:
   workflow_dispatch:
-  push:
-    branches-ignore:
-      - main
+#  push:
+#    branches-ignore:
+#      - main
 
 jobs:
   dev:
