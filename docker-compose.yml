@@ -1,6 +1,6 @@
 services:
   comfyui-worker:
-    image: runpod/worker-comfyui:3.4.0-sdxl
+    image: runpod/worker-comfyui:dev
     deploy:
       resources:
         reservations:
