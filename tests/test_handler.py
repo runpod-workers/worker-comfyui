@@ -5,9 +5,9 @@ import os
 import json
 import base64
 
-# Make sure that "src" is known and can be used to import rp_handler.py
+# Make sure that "src" is known and can be used to import handler.py
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")))
-from src import rp_handler
+from src import handler
 
 # Local folder for test resources
 RUNPOD_WORKER_COMFY_TEST_RESOURCES_IMAGES = "./test_resources/images"
@@ -16,7 +16,7 @@ RUNPOD_WORKER_COMFY_TEST_RESOURCES_IMAGES = "./test_resources/images"
 class TestRunpodWorkerComfy(unittest.TestCase):
     def test_valid_input_with_workflow_only(self):
         input_data = {"workflow": {"key": "value"}}
-        validated_data, error = rp_handler.validate_input(input_data)
+        validated_data, error = handler.validate_input(input_data)
         self.assertIsNone(error)
         self.assertEqual(validated_data, {"workflow": {"key": "value"}, "images": None})
 
@@ -25,13 +25,13 @@ class TestRunpodWorkerComfy(unittest.TestCase):
             "workflow": {"key": "value"},
             "images": [{"name": "image1.png", "image": "base64string"}],
         }
-        validated_data, error = rp_handler.validate_input(input_data)
+        validated_data, error = handler.validate_input(input_data)
         self.assertIsNone(error)
         self.assertEqual(validated_data, input_data)
 
     def test_input_missing_workflow(self):
         input_data = {"images": [{"name": "image1.png", "image": "base64string"}]}
-        validated_data, error = rp_handler.validate_input(input_data)
+        validated_data, error = handler.validate_input(input_data)
         self.assertIsNotNone(error)
         self.assertEqual(error, "Missing 'workflow' parameter")
 
@@ -40,7 +40,7 @@ class TestRunpodWorkerComfy(unittest.TestCase):
             "workflow": {"key": "value"},
             "images": [{"name": "image1.png"}],  # Missing 'image' key
         }
-        validated_data, error = rp_handler.validate_input(input_data)
+        validated_data, error = handler.validate_input(input_data)
         self.assertIsNotNone(error)
         self.assertEqual(
             error, "'images' must be a list of objects with 'name' and 'image' keys"
@@ -48,46 +48,46 @@ class TestRunpodWorkerComfy(unittest.TestCase):
 
     def test_invalid_json_string_input(self):
         input_data = "invalid json"
-        validated_data, error = rp_handler.validate_input(input_data)
+        validated_data, error = handler.validate_input(input_data)
         self.assertIsNotNone(error)
         self.assertEqual(error, "Invalid JSON format in input")
 
     def test_valid_json_string_input(self):
         input_data = '{"workflow": {"key": "value"}}'
-        validated_data, error = rp_handler.validate_input(input_data)
+        validated_data, error = handler.validate_input(input_data)
         self.assertIsNone(error)
         self.assertEqual(validated_data, {"workflow": {"key": "value"}, "images": None})
 
     def test_empty_input(self):
         input_data = None
-        validated_data, error = rp_handler.validate_input(input_data)
+        validated_data, error = handler.validate_input(input_data)
         self.assertIsNotNone(error)
         self.assertEqual(error, "Please provide input")
 
-    @patch("rp_handler.requests.get")
+    @patch("handler.requests.get")
     def test_check_server_server_up(self, mock_requests):
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_requests.return_value = mock_response
 
-        result = rp_handler.check_server("http://127.0.0.1:8188", 1, 50)
+        result = handler.check_server("http://127.0.0.1:8188", 1, 50)
         self.assertTrue(result)
 
-    @patch("rp_handler.requests.get")
+    @patch("handler.requests.get")
     def test_check_server_server_down(self, mock_requests):
-        mock_requests.get.side_effect = rp_handler.requests.RequestException()
-        result = rp_handler.check_server("http://127.0.0.1:8188", 1, 50)
+        mock_requests.get.side_effect = handler.requests.RequestException()
+        result = handler.check_server("http://127.0.0.1:8188", 1, 50)
         self.assertFalse(result)
 
-    @patch("rp_handler.urllib.request.urlopen")
+    @patch("handler.urllib.request.urlopen")
     def test_queue_prompt(self, mock_urlopen):
         mock_response = MagicMock()
         mock_response.read.return_value = json.dumps({"prompt_id": "123"}).encode()
         mock_urlopen.return_value = mock_response
-        result = rp_handler.queue_workflow({"prompt": "test"})
+        result = handler.queue_workflow({"prompt": "test"})
         self.assertEqual(result, {"prompt_id": "123"})
 
-    @patch("rp_handler.urllib.request.urlopen")
+    @patch("handler.urllib.request.urlopen")
     def test_get_history(self, mock_urlopen):
         # Mock response data as a JSON string
         mock_response_data = json.dumps({"key": "value"}).encode("utf-8")
@@ -108,7 +108,7 @@ class TestRunpodWorkerComfy(unittest.TestCase):
         mock_urlopen.return_value = mock_response
 
         # Call the function under test
-        result = rp_handler.get_history("123")
+        result = handler.get_history("123")
 
         # Assertions
         self.assertEqual(result, {"key": "value"})
@@ -118,12 +118,12 @@ class TestRunpodWorkerComfy(unittest.TestCase):
     def test_base64_encode(self, mock_file):
         test_data = base64.b64encode(b"test").decode("utf-8")
 
-        result = rp_handler.base64_encode("dummy_path")
+        result = handler.base64_encode("dummy_path")
 
         self.assertEqual(result, test_data)
 
-    @patch("rp_handler.os.path.exists")
-    @patch("rp_handler.rp_upload.upload_image")
+    @patch("handler.os.path.exists")
+    @patch("handler.rp_upload.upload_image")
     @patch.dict(
         os.environ, {"COMFY_OUTPUT_PATH": RUNPOD_WORKER_COMFY_TEST_RESOURCES_IMAGES}
     )
@@ -136,12 +136,12 @@ class TestRunpodWorkerComfy(unittest.TestCase):
         }
         job_id = "123"
 
-        result = rp_handler.process_output_images(outputs, job_id)
+        result = handler.process_output_images(outputs, job_id)
 
         self.assertEqual(result["status"], "success")
 
-    @patch("rp_handler.os.path.exists")
-    @patch("rp_handler.rp_upload.upload_image")
+    @patch("handler.os.path.exists")
+    @patch("handler.rp_upload.upload_image")
     @patch.dict(
         os.environ,
         {
@@ -157,11 +157,15 @@ class TestRunpodWorkerComfy(unittest.TestCase):
         mock_upload_image.return_value = "http://example.com/uploaded/image.png"
 
         # Define the outputs and job_id for the test
-        outputs = {"node_id": {"images": [{"filename": "ComfyUI_00001_.png", "subfolder": "test"}]}}
+        outputs = {
+            "node_id": {
+                "images": [{"filename": "ComfyUI_00001_.png", "subfolder": "test"}]
+            }
+        }
         job_id = "123"
 
         # Call the function under test
-        result = rp_handler.process_output_images(outputs, job_id)
+        result = handler.process_output_images(outputs, job_id)
 
         # Assertions
         self.assertEqual(result["status"], "success")
@@ -170,8 +174,8 @@ class TestRunpodWorkerComfy(unittest.TestCase):
             job_id, "./test_resources/images/test/ComfyUI_00001_.png"
         )
 
-    @patch("rp_handler.os.path.exists")
-    @patch("rp_handler.rp_upload.upload_image")
+    @patch("handler.os.path.exists")
+    @patch("handler.rp_upload.upload_image")
     @patch.dict(
         os.environ,
         {
@@ -195,13 +199,13 @@ class TestRunpodWorkerComfy(unittest.TestCase):
         }
         job_id = "123"
 
-        result = rp_handler.process_output_images(outputs, job_id)
+        result = handler.process_output_images(outputs, job_id)
 
         # Check if the image was saved to the 'simulated_uploaded' directory
         self.assertIn("simulated_uploaded", result["message"])
         self.assertEqual(result["status"], "success")
 
-    @patch("rp_handler.requests.post")
+    @patch("handler.requests.post")
     def test_upload_images_successful(self, mock_post):
         mock_response = unittest.mock.Mock()
         mock_response.status_code = 200
@@ -212,12 +216,12 @@ class TestRunpodWorkerComfy(unittest.TestCase):
 
         images = [{"name": "test_image.png", "image": test_image_data}]
 
-        responses = rp_handler.upload_images(images)
+        responses = handler.upload_images(images)
 
         self.assertEqual(len(responses), 3)
         self.assertEqual(responses["status"], "success")
 
-    @patch("rp_handler.requests.post")
+    @patch("handler.requests.post")
     def test_upload_images_failed(self, mock_post):
         mock_response = unittest.mock.Mock()
         mock_response.status_code = 400
@@ -228,7 +232,7 @@ class TestRunpodWorkerComfy(unittest.TestCase):
 
         images = [{"name": "test_image.png", "image": test_image_data}]
 
-        responses = rp_handler.upload_images(images)
+        responses = handler.upload_images(images)
 
         self.assertEqual(len(responses), 3)
         self.assertEqual(responses["status"], "error")

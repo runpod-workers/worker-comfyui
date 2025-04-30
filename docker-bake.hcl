@@ -73,3 +73,12 @@ target "flux1-dev" {
   inherits = ["base"]
 }
 
+target "flux1-dev-fp8" {
+  context = "."
+  dockerfile = "Dockerfile"
+  target = "final"
+  # No args needed, will use default MODEL_TYPE=flux1-dev-fp8
+  tags = ["${DOCKERHUB_REPO}/${DOCKERHUB_IMG}:${RELEASE_VERSION}-flux1-dev-fp8"]
+  inherits = ["base"]
+}
+

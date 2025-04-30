@@ -6,7 +6,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Prefer binary wheels over source distributions for faster pip installations
 ENV PIP_PREFER_BINARY=1
 # Ensures output from python is printed immediately to the terminal without buffering
-ENV PYTHONUNBUFFERED=1 
+ENV PYTHONUNBUFFERED=1
 # Speed up some cmake builds
 ENV CMAKE_BUILD_PARALLEL_LEVEL=8
 
@@ -30,7 +30,7 @@ RUN pip install uv
 RUN uv pip install comfy-cli --system
 
 # Install ComfyUI
-RUN /usr/bin/yes | comfy --workspace /comfyui install --version 0.3.29 --cuda-version 12.6 --nvidia --skip-manager
+RUN /usr/bin/yes | comfy --workspace /comfyui install --version 0.3.29 --cuda-version 12.6 --nvidia
 
 # Change working directory to ComfyUI
 WORKDIR /comfyui
@@ -41,22 +41,12 @@ ADD src/extra_model_paths.yaml ./
 # Go back to the root
 WORKDIR /
 
-# install dependencies
-RUN uv pip install runpod requests --system
-
-
-# Add files
-ADD src/start.sh src/restore_snapshot.sh src/rp_handler.py test_input.json ./
-RUN chmod +x /start.sh /restore_snapshot.sh
-
 # Optionally copy the snapshot file
-ADD *snapshot*.json /
+ADD src/restore_snapshot.sh *snapshot*.json /
+RUN chmod +x /restore_snapshot.sh
 
 # Restore the snapshot to install custom nodes
 RUN /restore_snapshot.sh
-
-# Start container
-CMD ["/start.sh"]
 
 # Stage 2: Download models
 FROM base AS downloader
@@ -100,5 +90,12 @@ FROM base AS final
 # Copy models from stage 2 to the final image
 COPY --from=downloader /comfyui/models /comfyui/models
 
-# Start container
+# Install Python runtime dependencies
+RUN uv pip install runpod requests --system
+
+# Add application code and scripts
+ADD src/start.sh handler.py test_input.json ./
+RUN chmod +x /start.sh
+
+# Set the default command to run when starting the container
 CMD ["/start.sh"]

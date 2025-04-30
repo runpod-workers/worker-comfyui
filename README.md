@@ -406,9 +406,9 @@ wsl -d Ubuntu
 ### Testing the RunPod handler
 
 - Run all tests: `python -m unittest discover`
-- If you want to run a specific test: `python -m unittest tests.test_rp_handler.TestRunpodWorkerComfy.test_bucket_endpoint_not_configured`
+- If you want to run a specific test: `python -m unittest tests.test_handler.TestRunpodWorkerComfy.test_bucket_endpoint_not_configured`
 
-You can also start the handler itself to have the local server running: `python src/rp_handler.py`
+You can also start the handler itself to have the local server running: `python src/handler.py`
 To get this to work you will also need to start "ComfyUI", otherwise the handler will not work.
 
 ### Local API
