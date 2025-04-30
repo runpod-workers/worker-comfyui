@@ -81,12 +81,10 @@
 
 ## Config
 
-| Environment Variable        | Description                                                                                                                                                                           | Default  |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| `REFRESH_WORKER`            | When you want to stop the worker after each finished job to have a clean state, see [official documentation](https://docs.runpod.io/docs/handler-additional-controls#refresh-worker). | `false`  |
-| `COMFY_POLLING_INTERVAL_MS` | Time to wait between poll attempts in milliseconds.                                                                                                                                   | `250`    |
-| `COMFY_POLLING_MAX_RETRIES` | Maximum number of poll attempts. This should be increased the longer your workflow is running.                                                                                        | `500`    |
-| `SERVE_API_LOCALLY`         | Enable local API server for development and testing. See [Local Testing](#local-testing) for more details.                                                                            | disabled |
+| Environment Variable | Description                                                                                                                                                                           | Default  |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| `REFRESH_WORKER`     | When you want to stop the worker after each finished job to have a clean state, see [official documentation](https://docs.runpod.io/docs/handler-additional-controls#refresh-worker). | `false`  |
+| `SERVE_API_LOCALLY`  | Enable local API server for development and testing. See [Local Testing](#local-testing) for more details.                                                                            | disabled |
 
 ### Upload image to AWS S3
 
@@ -221,7 +219,18 @@ Please also take a look at the [test_input.json](./test_input.json) to see how t
 curl -X POST -H "Authorization: Bearer <api_key>" -H "Content-Type: application/json" -d '{"input":{"workflow":{"3":{"inputs":{"seed":1337,"steps":20,"cfg":8,"sampler_name":"euler","scheduler":"normal","denoise":1,"model":["4",0],"positive":["6",0],"negative":["7",0],"latent_image":["5",0]},"class_type":"KSampler"},"4":{"inputs":{"ckpt_name":"sd_xl_base_1.0.safetensors"},"class_type":"CheckpointLoaderSimple"},"5":{"inputs":{"width":512,"height":512,"batch_size":1},"class_type":"EmptyLatentImage"},"6":{"inputs":{"text":"beautiful scenery nature glass bottle landscape, purple galaxy bottle,","clip":["4",1]},"class_type":"CLIPTextEncode"},"7":{"inputs":{"text":"text, watermark","clip":["4",1]},"class_type":"CLIPTextEncode"},"8":{"inputs":{"samples":["3",0],"vae":["4",2]},"class_type":"VAEDecode"},"9":{"inputs":{"filename_prefix":"ComfyUI","images":["8",0]},"class_type":"SaveImage"}}}}' https://api.runpod.ai/v2/<endpoint_id>/runsync
 ```
 
-Example response with AWS S3 bucket configuration
+> [!WARNING] > **Breaking Change in v4.0.0**
+> Versions `< 4.0.0` returned the image data (URL or base64 string) directly within the `output.message` field.
+> Starting with `v4.0.0`, the output format has changed:
+>
+> - Image data is now returned within an `output.images` field.
+> - This field is a **list of dictionaries**. Each dictionary contains:
+>   - `filename`: The original filename from ComfyUI.
+>   - `type`: Either `"s3_url"` or `"base64"`.
+>   - `data`: The corresponding S3 URL or the base64 encoded image string. (Previously `url`/`base64`)
+>     Clients need to be updated to handle this new structure.
+
+Example response with AWS S3 bucket configuration (v4.0.0+)
 
 ```json
 {
@@ -229,21 +238,38 @@ Example response with AWS S3 bucket configuration
   "executionTime": 2297,
   "id": "sync-c0cd1eb2-068f-4ecf-a99a-55770fc77391-e1",
   "output": {
-    "message": "https://bucket.s3.region.amazonaws.com/10-23/sync-c0cd1eb2-068f-4ecf-a99a-55770fc77391-e1/c67ad621.png",
-    "status": "success"
+    "images": [
+      {
+        "filename": "ComfyUI_00001_.png",
+        "type": "s3_url",
+        "data": "https://your-bucket.s3.your-region.amazonaws.com/job-id/ComfyUI_00001_.png"
+      }
+      // Potentially more images here
+    ]
+    // Optional "errors" field might be present if non-fatal issues occurred
   },
   "status": "COMPLETED"
 }
 ```
 
-Example response as base64-encoded image
+Example response as base64-encoded image (v4.0.0+)
 
 ```json
 {
   "delayTime": 2188,
   "executionTime": 2297,
   "id": "sync-c0cd1eb2-068f-4ecf-a99a-55770fc77391-e1",
-  "output": { "message": "base64encodedimage", "status": "success" },
+  "output": {
+    "images": [
+      {
+        "filename": "ComfyUI_00001_.png",
+        "type": "base64",
+        "data": "iVBORw0KGgoAAAANSUhEUg..."
+      }
+      // Potentially more images here
+    ]
+    // Optional "errors" field might be present if non-fatal issues occurred
+  },
   "status": "COMPLETED"
 }
 ```

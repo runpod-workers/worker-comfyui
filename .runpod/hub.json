@@ -19,24 +19,6 @@
           "description": "When enabled, the worker will stop after each finished job to have a clean state",
           "default": false
         }
-      },
-      {
-        "key": "COMFY_POLLING_INTERVAL_MS",
-        "input": {
-          "name": "Polling Interval (ms)",
-          "type": "number",
-          "description": "Time to wait between poll attempts in milliseconds",
-          "default": 250
-        }
-      },
-      {
-        "key": "COMFY_POLLING_MAX_RETRIES",
-        "input": {
-          "name": "Max Polling Retries",
-          "type": "number",
-          "description": "Maximum number of poll attempts. Increase for longer workflows",
-          "default": 500
-        }
       }
     ]
   }

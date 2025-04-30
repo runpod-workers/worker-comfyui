@@ -73,14 +73,6 @@
       {
         "key": "REFRESH_WORKER",
         "value": "false"
-      },
-      {
-        "key": "COMFY_POLLING_INTERVAL_MS",
-        "value": "250"
-      },
-      {
-        "key": "COMFY_POLLING_MAX_RETRIES",
-        "value": "500"
       }
     ],
     "allowedCudaVersions": [
