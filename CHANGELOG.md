@@ -1,3 +1,16 @@
+# [4.1.0](https://github.com/runpod-workers/worker-comfyui/compare/4.0.1...4.1.0) (2025-05-02)
+
+
+### Bug Fixes
+
+* moved code back into stage 1 ([d9ed145](https://github.com/runpod-workers/worker-comfyui/commit/d9ed14571308ad27481ae2dda4762d32b73b5d20))
+
+
+### Features
+
+* move stuff around ([2b2bc12](https://github.com/runpod-workers/worker-comfyui/commit/2b2bc1238dec5715092fa4b3e1418b8a443a409b))
+* removed polling; added websocket; allow multiple output images; ([79a560f](https://github.com/runpod-workers/worker-comfyui/commit/79a560f46fbd303828175d138098faebd4baa97e))
+
 # [3.6.0](https://github.com/blib-la/runpod-worker-comfy/compare/3.5.0...3.6.0) (2025-03-12)
 
 
