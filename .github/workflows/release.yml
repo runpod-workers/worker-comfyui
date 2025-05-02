@@ -21,14 +21,6 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
-
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-
       - name: Clear space to remove unused folders
         run: |
           rm -rf /usr/share/dotnet
@@ -55,6 +47,7 @@ jobs:
         uses: codfish/semantic-release-action@v3
         id: semanticrelease
         with:
+          args: --dry-run
           additional-packages: |
             ['@semantic-release/git', '@semantic-release/changelog', '@semantic-release/exec']
         env:
