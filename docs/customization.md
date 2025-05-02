@@ -14,59 +14,51 @@ This is the most flexible and recommended approach for creating reproducible, cu
 1.  **Create a `Dockerfile`:** In your own project directory, create a file named `Dockerfile`.
 2.  **Start with a Base Image:** Begin your `Dockerfile` by referencing one of the official base images. Using the `-base` tag is recommended as it provides a clean ComfyUI install with necessary tools like `comfy-cli` but without pre-packaged models.
     ```Dockerfile
-    # Start from a clean base image (replace <version> with the desired release)
+    # start from a clean base image (replace <version> with the desired release)
     FROM runpod/worker-comfyui:<version>-base
     ```
 3.  **Install Custom Nodes:** Use the `comfy node install` command to add custom nodes by their repository name or URL. You can list multiple nodes.
     ```Dockerfile
-    # Install desired custom nodes using comfy-cli
-    RUN comfy node install comfyui-kjnodes comfyui-ic-light comfyui_ipadapter_plus comfyui_essentials ComfyUI-Hangover-Nodes
+    # install custom nodes using comfy-cli
+    RUN comfy node install comfyui-kjnodes comfyui-ic-light
     ```
 4.  **Download Models:** Use the `comfy model download` command to fetch models and place them in the correct ComfyUI directories.
+
     ```Dockerfile
     # Download models using comfy-cli
-    # Checkpoints
     RUN comfy model download --url https://huggingface.co/KamCastle/jugg/resolve/main/juggernaut_reborn.safetensors --relative-path models/checkpoints --filename juggernaut_reborn.safetensors
-    # IPAdapter
-    RUN comfy model download --url https://huggingface.co/h94/IP-Adapter/resolve/main/models/ip-adapter-plus_sd15.bin --relative-path models/ipadapter --filename ip-adapter-plus_sd15.bin
-    # CLIP Vision
-    RUN comfy model download --url https://huggingface.co/shiertier/clip_vision/resolve/main/SD15/model.safetensors --relative-path models/clip_vision --filename models.safetensors
-    # Other Diffusion Models (e.g., IC-Light)
-    RUN comfy model download --url https://huggingface.co/lllyasviel/ic-light/resolve/main/iclight_sd15_fcon.safetensors --relative-path models/diffusion_models --filename iclight_sd15_fcon.safetensors
     ```
-    - Ensure you use the correct `--relative-path` corresponding to ComfyUI's model directory structure (e.g., `models/checkpoints`, `models/loras`, `models/ipadapter`, `models/clip_vision`, etc.).
-5.  **Add Static Input Files (Optional):** If your workflows consistently require specific input images, masks, videos, etc., you can copy them directly into the image.
-    - Create an `input/` directory in the same folder as your `Dockerfile`.
-    - Place your static files inside this `input/` directory.
-    - Add a `COPY` command to your `Dockerfile`:
-      ```Dockerfile
-      # Copy local static input files into the ComfyUI input directory
-      COPY input/ /comfyui/input/
-      ```
-      These files can then be referenced in your workflow using a "Load Image" (or similar) node pointing to the filename (e.g., `my_static_image.png`).
+
+    > [!INFO]
+    > Ensure you use the correct `--relative-path` corresponding to ComfyUI's model directory structure (starting with `models/<folder>`):
+    >
+    > checkpoints, clip, clip_vision, configs, controlnet, diffusers, embeddings, gligen, hypernetworks, loras, style_models, unet, upscale_models, vae, vae_approx, animatediff_models, animatediff_motion_lora, ipadapter, photomaker, sams, insightface, facerestore_models, facedetection, mmdets, instantid
+
+5.  **Add Static Input Files (Optional):** If your workflows consistently require specific input images, masks, videos, etc., you can copy them directly into the image. - Create an `input/` directory in the same folder as your `Dockerfile`. - Place your static files inside this `input/` directory. - Add a `COPY` command to your `Dockerfile`:
+    `Dockerfile
+    # Copy local static input files into the ComfyUI input directory
+    COPY input/ /comfyui/input/
+    `These files can then be referenced in your workflow using a "Load Image" (or similar) node pointing to the filename (e.g.,`my_static_image.png`).
 
 Once you have created your custom `Dockerfile`, refer to the [Deployment Guide](deployment.md#deploying-custom-setups) for instructions on how to build, push and deploy your custom image to RunPod.
 
-### Complete Custom `Dockerfile`
+### Complete Custom `Dockerfile` Example
 
 ```Dockerfile
-# Start from a clean base image (replace <version> with the desired release)
+# start from a clean base image (replace <version> with the desired release)
 FROM runpod/worker-comfyui:5.0.0-base
 
-# Install desired custom nodes using comfy-cli
+# install custom nodes using comfy-cli
 RUN comfy node install comfyui-kjnodes comfyui-ic-light comfyui_ipadapter_plus comfyui_essentials ComfyUI-Hangover-Nodes
 
-# Download models using comfy-cli
-# Checkpoints
+# download models using comfy-cli
+# the "--filename" is what you use in your ComfyUI workflow
 RUN comfy model download --url https://huggingface.co/KamCastle/jugg/resolve/main/juggernaut_reborn.safetensors --relative-path models/checkpoints --filename juggernaut_reborn.safetensors
-# IPAdapter
 RUN comfy model download --url https://huggingface.co/h94/IP-Adapter/resolve/main/models/ip-adapter-plus_sd15.bin --relative-path models/ipadapter --filename ip-adapter-plus_sd15.bin
-# CLIP Vision
 RUN comfy model download --url https://huggingface.co/shiertier/clip_vision/resolve/main/SD15/model.safetensors --relative-path models/clip_vision --filename models.safetensors
-# Other Diffusion Models (e.g., IC-Light)
 RUN comfy model download --url https://huggingface.co/lllyasviel/ic-light/resolve/main/iclight_sd15_fcon.safetensors --relative-path models/diffusion_models --filename iclight_sd15_fcon.safetensors
 
-# Copy local static input files into the ComfyUI input directory (optional)
+# Copy local static input files into the ComfyUI input directory (delete if not needed)
 # Assumes you have an 'input' folder next to your Dockerfile
 COPY input/ /comfyui/input/
 ```
