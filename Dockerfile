@@ -48,6 +48,16 @@ RUN chmod +x /restore_snapshot.sh
 # Restore the snapshot to install custom nodes
 RUN /restore_snapshot.sh
 
+# Install Python runtime dependencies for the handler
+RUN uv pip install runpod requests websocket-client --system
+
+# Add application code and scripts
+ADD src/start.sh handler.py test_input.json ./
+RUN chmod +x /start.sh
+
+# Set the default command to run when starting the container
+CMD ["/start.sh"]
+
 # Stage 2: Download models
 FROM base AS downloader
 
@@ -89,13 +99,3 @@ FROM base AS final
 
 # Copy models from stage 2 to the final image
 COPY --from=downloader /comfyui/models /comfyui/models
-
-# Install Python runtime dependencies
-RUN uv pip install runpod requests --system
-
-# Add application code and scripts
-ADD src/start.sh handler.py test_input.json ./
-RUN chmod +x /start.sh
-
-# Set the default command to run when starting the container
-CMD ["/start.sh"]
