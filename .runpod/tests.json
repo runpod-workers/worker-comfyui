@@ -1,0 +1,1 @@
+{\n  "tests": [\n    {\n      "name": "Basic Functionality Test",\n      "description": "Tests the basic functionality of the ComfyUI worker",\n      "input": {\n        "input": {\n          "prompt": "A test prompt"\n        }\n      },\n      "expected": {\n        "status": "success"\n      },\n      "timeout": 300\n    }\n  ]\n}
