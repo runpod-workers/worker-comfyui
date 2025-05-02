@@ -1,6 +1,7 @@
 services:
   comfyui-worker:
     image: worker-comfyui:dev
+    pull_policy: never
     deploy:
       resources:
         reservations:
