@@ -145,10 +145,8 @@ def check_server(url, retries=500, delay=50):
                 print(f"worker-comfyui - API is reachable")
                 return True
         except requests.Timeout:
-            print(f"worker-comfyui - API check timed out (attempt {i+1}/{retries})")
+            pass
         except requests.RequestException as e:
-            # If an exception occurs, the server may not be ready
-            print(f"worker-comfyui - API check failed (attempt {i+1}/{retries}): {e}")
             pass
 
         # Wait for the specified delay before retrying
@@ -467,13 +465,12 @@ def handler(job):
             error_msg = f"Prompt ID {prompt_id} not found in history after execution."
             print(f"worker-comfyui - {error_msg}")
             if not errors:
-                return {"error": error_msg, "refresh_worker": REFRESH_WORKER}
+                return {"error": error_msg}
             else:
                 errors.append(error_msg)
                 return {
                     "error": "Job processing failed, prompt ID not found in history.",
                     "details": errors,
-                    "refresh_worker": REFRESH_WORKER,
                 }
 
         prompt_history = history.get(prompt_id, {})
@@ -603,7 +600,7 @@ def handler(job):
             print(f"worker-comfyui - Closing websocket connection.")
             ws.close()
 
-    final_result = {"refresh_worker": REFRESH_WORKER}
+    final_result = {}
 
     if output_data:
         final_result["images"] = output_data
@@ -617,7 +614,6 @@ def handler(job):
         return {
             "error": "Job processing failed",
             "details": errors,
-            "refresh_worker": REFRESH_WORKER,
         }
     elif not output_data and not errors:
         print(
