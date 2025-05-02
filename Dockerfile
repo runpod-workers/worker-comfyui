@@ -30,7 +30,7 @@ RUN pip install uv
 RUN uv pip install comfy-cli --system
 
 # Install ComfyUI
-RUN /usr/bin/yes | comfy --workspace /comfyui install --version 0.3.29 --cuda-version 12.6 --nvidia
+RUN /usr/bin/yes | comfy --workspace /comfyui install --version 0.3.30 --cuda-version 12.6 --nvidia
 
 # Change working directory to ComfyUI
 WORKDIR /comfyui
@@ -40,13 +40,6 @@ ADD src/extra_model_paths.yaml ./
 
 # Go back to the root
 WORKDIR /
-
-# Optionally copy the snapshot file
-ADD src/restore_snapshot.sh *snapshot*.json /
-RUN chmod +x /restore_snapshot.sh
-
-# Restore the snapshot to install custom nodes
-RUN /restore_snapshot.sh
 
 # Install Python runtime dependencies for the handler
 RUN uv pip install runpod requests websocket-client --system
