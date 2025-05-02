@@ -8,7 +8,7 @@ on:
 
 jobs:
   release:
-    runs-on: [self-hosted, linux]
+    runs-on: [blacksmith-8vcpu-ubuntu-2204, linux]
     if: ${{ !contains(github.event.head_commit.message, 'chore(release)') }}
     permissions:
       contents: write
@@ -22,7 +22,7 @@ jobs:
           persist-credentials: false
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: useblacksmith/setup-python@v6
         with:
           python-version: "3.10"
 
