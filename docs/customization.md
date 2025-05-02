@@ -25,7 +25,7 @@ This is the most flexible and recommended approach for creating reproducible, cu
 4.  **Download Models:** Use the `comfy model download` command to fetch models and place them in the correct ComfyUI directories.
 
     ```Dockerfile
-    # Download models using comfy-cli
+    # download models using comfy-cli
     RUN comfy model download --url https://huggingface.co/KamCastle/jugg/resolve/main/juggernaut_reborn.safetensors --relative-path models/checkpoints --filename juggernaut_reborn.safetensors
     ```
 
