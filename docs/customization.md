@@ -9,15 +9,19 @@ There are two primary methods for customizing your setup:
 
 ## Method 1: Custom Dockerfile
 
+> [!NOTE]
+>
+> This method does not require forking the `worker-comfyui` repository.
+
 This is the most flexible and recommended approach for creating reproducible, customized worker environments.
 
 1.  **Create a `Dockerfile`:** In your own project directory, create a file named `Dockerfile`.
 2.  **Start with a Base Image:** Begin your `Dockerfile` by referencing one of the official base images. Using the `-base` tag is recommended as it provides a clean ComfyUI install with necessary tools like `comfy-cli` but without pre-packaged models.
     ```Dockerfile
-    # start from a clean base image (replace <version> with the desired release)
+    # start from a clean base image (replace <version> with the desired [release](https://github.com/runpod/worker-comfyui/releases))
     FROM runpod/worker-comfyui:<version>-base
     ```
-3.  **Install Custom Nodes:** Use the `comfy node install` command to add custom nodes by their repository name or URL. You can list multiple nodes.
+3.  **Install Custom Nodes:** Use the `comfy node install` command to add custom nodes by their name or URL, see [Comfy Registry](https://registry.comfy.org) to find the correct name. You can list multiple nodes.
     ```Dockerfile
     # install custom nodes using comfy-cli
     RUN comfy node install comfyui-kjnodes comfyui-ic-light
@@ -30,6 +34,7 @@ This is the most flexible and recommended approach for creating reproducible, cu
     ```
 
     > [!INFO]
+    >
     > Ensure you use the correct `--relative-path` corresponding to ComfyUI's model directory structure (starting with `models/<folder>`):
     >
     > checkpoints, clip, clip_vision, configs, controlnet, diffusers, embeddings, gligen, hypernetworks, loras, style_models, unet, upscale_models, vae, vae_approx, animatediff_models, animatediff_motion_lora, ipadapter, photomaker, sams, insightface, facerestore_models, facedetection, mmdets, instantid
