@@ -17,6 +17,11 @@ RUN apt-get update && apt-get install -y \
     git \
     wget \
     libgl1 \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender1 \
+    ffmpeg \
     && ln -sf /usr/bin/python3.11 /usr/bin/python \
     && ln -sf /usr/bin/pip3 /usr/bin/pip
 
@@ -47,6 +52,17 @@ RUN uv pip install runpod requests websocket-client --system
 # Add application code and scripts
 ADD src/start.sh handler.py test_input.json ./
 RUN chmod +x /start.sh
+
+# Add script to install custom nodes
+COPY scripts/comfy-node-install.sh /usr/local/bin/comfy-node-install
+RUN chmod +x /usr/local/bin/comfy-node-install
+
+# Prevent pip from asking for confirmation during uninstall steps in custom nodes
+ENV PIP_NO_INPUT=1
+
+# Copy helper script to switch Manager network mode at container start
+COPY scripts/comfy-manager-set-mode.sh /usr/local/bin/comfy-manager-set-mode
+RUN chmod +x /usr/local/bin/comfy-manager-set-mode
 
 # Set the default command to run when starting the container
 CMD ["/start.sh"]
