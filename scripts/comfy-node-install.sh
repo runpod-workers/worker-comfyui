@@ -20,11 +20,11 @@ cli_status=$?
 set -e
 
 # extract node names that failed to install (one per line, uniq-sorted)
-failed_nodes=$(grep -oP "(?<=An error occurred while installing ')[^']+" "$log" | sort -u)
+failed_nodes=$(grep -oP "(?<=An error occurred while installing ')[^']+" "$log" | sort -u || true)
 
 # Fallback: capture names from "Node '<name>@' not found" lines if previous grep found nothing
 if [[ -z "$failed_nodes" ]]; then
-  failed_nodes=$(grep -oP "(?<=Node ')[^@']+" "$log" | sort -u)
+  failed_nodes=$(grep -oP "(?<=Node ')[^@']+" "$log" | sort -u || true)
 fi
 
 if [[ -n "$failed_nodes" ]]; then
