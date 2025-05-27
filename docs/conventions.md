@@ -21,6 +21,10 @@ This document outlines the key operational and structural conventions for the `w
   # Example build command
   docker build --platform linux/amd64 -t my-image:tag .
   ```
+- **Development Builds:** For faster development iterations, use `MODEL_TYPE=base` to skip downloading external models:
+  ```bash
+  docker build --build-arg MODEL_TYPE=base -t runpod/worker-comfyui:dev .
+  ```
 - **Customization:** Follow the methods in the `README.md` for adding custom models/nodes (Network Volume or Dockerfile edits + snapshots).
 
 ## 3. API Interaction
@@ -31,16 +35,34 @@ This document outlines the key operational and structural conventions for the `w
 - **Output Structure:** Successful responses contain an `output.images` field, which is a **list of dictionaries**. Each dictionary includes `filename` (string), `type` (`"s3_url"` or `"base64"`), and `data` (string containing the URL or base64 data). Refer to the `README.md` API examples for the exact structure.
 - **Internal Communication:** Job status monitoring uses the ComfyUI websocket API instead of HTTP polling for efficiency.
 
-## 4. Testing
+## 4. Error Handling
+
+- **User-Friendly Errors:** Always surface meaningful error messages to users rather than generic HTTP errors or internal exceptions.
+- **ComfyUI Integration:** When ComfyUI returns validation errors, parse the response body to extract detailed error information and present it in a structured, actionable format.
+- **Helpful Context:** When possible, provide users with information about available options (e.g., available models, valid parameters) to help them correct their requests.
+- **Graceful Fallbacks:** Error handling should degrade gracefully - if detailed error parsing fails, fall back to showing the raw response rather than hiding the error entirely.
+
+## 5. Development Workflow
+
+- **Code Changes:** After modifying handler code, always rebuild the Docker image before testing with `docker-compose`:
+  ```bash
+  docker-compose down
+  docker build --build-arg MODEL_TYPE=base -t runpod/worker-comfyui:dev .
+  docker-compose up -d
+  ```
+- **Debugging:** Use strategic logging/print statements to understand external API responses (like ComfyUI's error formats) before implementing error handling.
+- **Testing:** Test error scenarios as thoroughly as success scenarios to ensure good user experience.
+
+## 6. Testing
 
 - **Unit Tests:** Automated tests are located in the `tests/` directory and should be run using `python -m unittest discover`. Add new tests for new functionality or bug fixes.
 - **Local Environment:** Use `docker-compose up` for local end-to-end testing. This requires a correctly configured Docker environment with NVIDIA GPU support.
 
-## 5. Dependencies
+## 7. Dependencies
 
 - **Python:** Manage Python dependencies using `pip` (or `uv`) and the `requirements.txt` file. Keep this file up-to-date.
 
-## 6. Code Style (General Guidance)
+## 8. Code Style (General Guidance)
 
 - While not enforced by tooling, aim for code clarity and consistency. Follow general Python best practices (e.g., PEP 8).
 - Use meaningful variable and function names.
