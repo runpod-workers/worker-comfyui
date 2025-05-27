@@ -21,10 +21,10 @@ This is the most flexible and recommended approach for creating reproducible, cu
     # start from a clean base image (replace <version> with the desired [release](https://github.com/runpod/worker-comfyui/releases))
     FROM runpod/worker-comfyui:<version>-base
     ```
-3.  **Install Custom Nodes:** Use the `comfy node install` command to add custom nodes by their name or URL, see [Comfy Registry](https://registry.comfy.org) to find the correct name. You can list multiple nodes.
+3.  **Install Custom Nodes:** Use the `comfy-node-install` (we had introduce our own cli tool here, as there is a [problem with comfy-cli not showing errors during installation](https://github.com/Comfy-Org/comfy-cli/pull/275)) command to add custom nodes by their name or URL, see [Comfy Registry](https://registry.comfy.org) to find the correct name. You can list multiple nodes.
     ```Dockerfile
     # install custom nodes using comfy-cli
-    RUN comfy node install comfyui-kjnodes comfyui-ic-light
+    RUN comfy-node-installl comfyui-kjnodes comfyui-ic-light
     ```
 4.  **Download Models:** Use the `comfy model download` command to fetch models and place them in the correct ComfyUI directories.
 
@@ -54,7 +54,7 @@ Once you have created your custom `Dockerfile`, refer to the [Deployment Guide](
 FROM runpod/worker-comfyui:5.0.0-base
 
 # install custom nodes using comfy-cli
-RUN comfy node install comfyui-kjnodes comfyui-ic-light comfyui_ipadapter_plus comfyui_essentials ComfyUI-Hangover-Nodes
+RUN comfy-node-install comfyui-kjnodes comfyui-ic-light comfyui_ipadapter_plus comfyui_essentials ComfyUI-Hangover-Nodes
 
 # download models using comfy-cli
 # the "--filename" is what you use in your ComfyUI workflow
