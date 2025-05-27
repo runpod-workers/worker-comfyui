@@ -12,19 +12,48 @@ import websocket
 import uuid
 import tempfile
 import socket
+import traceback
 
 # Time to wait between API check attempts in milliseconds
 COMFY_API_AVAILABLE_INTERVAL_MS = 50
 # Maximum number of API check attempts
 COMFY_API_AVAILABLE_MAX_RETRIES = 500
-# Websocket Reconnection Retries (when connection drops during recv)
-WEBSOCKET_RECONNECT_ATTEMPTS = 2
-WEBSOCKET_RECONNECT_DELAY_S = 3
+# Websocket reconnection behaviour (can be overridden through environment variables)
+# NOTE: more attempts and diagnostics improve debuggability whenever ComfyUI crashes mid-job.
+#   • WEBSOCKET_RECONNECT_ATTEMPTS sets how many times we will try to reconnect.
+#   • WEBSOCKET_RECONNECT_DELAY_S sets the sleep in seconds between attempts.
+#
+# If the respective env-vars are not supplied we fall back to sensible defaults ("5" and "3").
+WEBSOCKET_RECONNECT_ATTEMPTS = int(os.environ.get("WEBSOCKET_RECONNECT_ATTEMPTS", 5))
+WEBSOCKET_RECONNECT_DELAY_S = int(os.environ.get("WEBSOCKET_RECONNECT_DELAY_S", 3))
+
+# Extra verbose websocket trace logs (set WEBSOCKET_TRACE=true to enable)
+if os.environ.get("WEBSOCKET_TRACE", "false").lower() == "true":
+    # This prints low-level frame information to stdout which is invaluable for diagnosing
+    # protocol errors but can be noisy in production – therefore gated behind an env-var.
+    websocket.enableTrace(True)
+
 # Host where ComfyUI is running
 COMFY_HOST = "127.0.0.1:8188"
 # Enforce a clean state after each job is done
 # see https://docs.runpod.io/docs/handler-additional-controls#refresh-worker
 REFRESH_WORKER = os.environ.get("REFRESH_WORKER", "false").lower() == "true"
+
+# ---------------------------------------------------------------------------
+# Helper: quick reachability probe of ComfyUI HTTP endpoint (port 8188)
+# ---------------------------------------------------------------------------
+
+
+def _comfy_server_status():
+    """Return a dictionary with basic reachability info for the ComfyUI HTTP server."""
+    try:
+        resp = requests.get(f"http://{COMFY_HOST}/", timeout=5)
+        return {
+            "reachable": resp.status_code == 200,
+            "status_code": resp.status_code,
+        }
+    except Exception as exc:
+        return {"reachable": False, "error": str(exc)}
 
 
 def _attempt_websocket_reconnect(ws_url, max_attempts, delay_s, initial_error):
@@ -48,7 +77,25 @@ def _attempt_websocket_reconnect(ws_url, max_attempts, delay_s, initial_error):
     )
     last_reconnect_error = initial_error
     for attempt in range(max_attempts):
-        print(f"worker-comfyui - Reconnect attempt {attempt + 1}/{max_attempts}...")
+        # Log current server status before each reconnect attempt so that we can
+        # see whether ComfyUI is still alive (HTTP port 8188 responding) even if
+        # the websocket dropped. This is extremely useful to differentiate
+        # between a network glitch and an outright ComfyUI crash/OOM-kill.
+        srv_status = _comfy_server_status()
+        if not srv_status["reachable"]:
+            # If ComfyUI itself is down there is no point in retrying the websocket –
+            # bail out immediately so the caller gets a clear "ComfyUI crashed" error.
+            print(
+                f"worker-comfyui - ComfyUI HTTP unreachable – aborting websocket reconnect: {srv_status.get('error', 'status '+str(srv_status.get('status_code')))}"
+            )
+            raise websocket.WebSocketConnectionClosedException(
+                "ComfyUI HTTP unreachable during websocket reconnect"
+            )
+
+        # Otherwise we proceed with reconnect attempts while server is up
+        print(
+            f"worker-comfyui - Reconnect attempt {attempt + 1}/{max_attempts}... (ComfyUI HTTP reachable, status {srv_status.get('status_code')})"
+        )
         try:
             # Need to create a new socket object for reconnect
             new_ws = websocket.WebSocket()
@@ -242,6 +289,35 @@ def upload_images(images):
     }
 
 
+def get_available_models():
+    """
+    Get list of available models from ComfyUI
+
+    Returns:
+        dict: Dictionary containing available models by type
+    """
+    try:
+        response = requests.get(f"http://{COMFY_HOST}/object_info", timeout=10)
+        response.raise_for_status()
+        object_info = response.json()
+
+        # Extract available checkpoints from CheckpointLoaderSimple
+        available_models = {}
+        if "CheckpointLoaderSimple" in object_info:
+            checkpoint_info = object_info["CheckpointLoaderSimple"]
+            if "input" in checkpoint_info and "required" in checkpoint_info["input"]:
+                ckpt_options = checkpoint_info["input"]["required"].get("ckpt_name")
+                if ckpt_options and len(ckpt_options) > 0:
+                    available_models["checkpoints"] = (
+                        ckpt_options[0] if isinstance(ckpt_options[0], list) else []
+                    )
+
+        return available_models
+    except Exception as e:
+        print(f"worker-comfyui - Warning: Could not fetch available models: {e}")
+        return {}
+
+
 def queue_workflow(workflow, client_id):
     """
     Queue a workflow to be processed by ComfyUI
@@ -252,6 +328,9 @@ def queue_workflow(workflow, client_id):
 
     Returns:
         dict: The JSON response from ComfyUI after processing the workflow
+
+    Raises:
+        ValueError: If the workflow validation fails with detailed error information
     """
     # Include client_id in the prompt payload
     payload = {"prompt": workflow, "client_id": client_id}
@@ -262,6 +341,84 @@ def queue_workflow(workflow, client_id):
     response = requests.post(
         f"http://{COMFY_HOST}/prompt", data=data, headers=headers, timeout=30
     )
+
+    # Handle validation errors with detailed information
+    if response.status_code == 400:
+        print(f"worker-comfyui - ComfyUI returned 400. Response body: {response.text}")
+        try:
+            error_data = response.json()
+            print(f"worker-comfyui - Parsed error data: {error_data}")
+
+            # Try to extract meaningful error information
+            error_message = "Workflow validation failed"
+            error_details = []
+
+            # ComfyUI seems to return different error formats, let's handle them all
+            if "error" in error_data:
+                error_info = error_data["error"]
+                if isinstance(error_info, dict):
+                    error_message = error_info.get("message", error_message)
+                    if error_info.get("type") == "prompt_outputs_failed_validation":
+                        error_message = "Workflow validation failed"
+                else:
+                    error_message = str(error_info)
+
+            # Check for node validation errors in the response
+            if "node_errors" in error_data:
+                for node_id, node_error in error_data["node_errors"].items():
+                    if isinstance(node_error, dict):
+                        for error_type, error_msg in node_error.items():
+                            error_details.append(
+                                f"Node {node_id} ({error_type}): {error_msg}"
+                            )
+                    else:
+                        error_details.append(f"Node {node_id}: {node_error}")
+
+            # Check if the error data itself contains validation info
+            if error_data.get("type") == "prompt_outputs_failed_validation":
+                error_message = error_data.get("message", "Workflow validation failed")
+                # For this type of error, we need to parse the validation details from logs
+                # Since ComfyUI doesn't seem to include detailed validation errors in the response
+                # Let's provide a more helpful generic message
+                available_models = get_available_models()
+                if available_models.get("checkpoints"):
+                    error_message += f"\n\nThis usually means a required model or parameter is not available."
+                    error_message += f"\nAvailable checkpoint models: {', '.join(available_models['checkpoints'])}"
+                else:
+                    error_message += "\n\nThis usually means a required model or parameter is not available."
+                    error_message += "\nNo checkpoint models appear to be available. Please check your model installation."
+
+                raise ValueError(error_message)
+
+            # If we have specific validation errors, format them nicely
+            if error_details:
+                detailed_message = f"{error_message}:\n" + "\n".join(
+                    f"• {detail}" for detail in error_details
+                )
+
+                # Try to provide helpful suggestions for common errors
+                if any(
+                    "not in list" in detail and "ckpt_name" in detail
+                    for detail in error_details
+                ):
+                    available_models = get_available_models()
+                    if available_models.get("checkpoints"):
+                        detailed_message += f"\n\nAvailable checkpoint models: {', '.join(available_models['checkpoints'])}"
+                    else:
+                        detailed_message += "\n\nNo checkpoint models appear to be available. Please check your model installation."
+
+                raise ValueError(detailed_message)
+            else:
+                # Fallback to the raw response if we can't parse specific errors
+                raise ValueError(f"{error_message}. Raw response: {response.text}")
+
+        except (json.JSONDecodeError, KeyError) as e:
+            # If we can't parse the error response, fall back to the raw text
+            raise ValueError(
+                f"ComfyUI validation failed (could not parse error response): {response.text}"
+            )
+
+    # For other HTTP errors, raise them normally
     response.raise_for_status()
     return response.json()
 
@@ -388,7 +545,11 @@ def handler(job):
             raise ValueError(f"Error queuing workflow: {e}")
         except Exception as e:
             print(f"worker-comfyui - Unexpected error queuing workflow: {e}")
-            raise ValueError(f"Unexpected error queuing workflow: {e}")
+            # For ValueError exceptions from queue_workflow, pass through the original message
+            if isinstance(e, ValueError):
+                raise e
+            else:
+                raise ValueError(f"Unexpected error queuing workflow: {e}")
 
         # Wait for execution completion via WebSocket
         print(f"worker-comfyui - Waiting for workflow execution ({prompt_id})...")
@@ -585,15 +746,19 @@ def handler(job):
 
     except websocket.WebSocketException as e:
         print(f"worker-comfyui - WebSocket Error: {e}")
+        print(traceback.format_exc())
         return {"error": f"WebSocket communication error: {e}"}
     except requests.RequestException as e:
         print(f"worker-comfyui - HTTP Request Error: {e}")
+        print(traceback.format_exc())
         return {"error": f"HTTP communication error with ComfyUI: {e}"}
     except ValueError as e:
         print(f"worker-comfyui - Value Error: {e}")
+        print(traceback.format_exc())
         return {"error": str(e)}
     except Exception as e:
         print(f"worker-comfyui - Unexpected Handler Error: {e}")
+        print(traceback.format_exc())
         return {"error": f"An unexpected error occurred: {e}"}
     finally:
         if ws and ws.connected:
