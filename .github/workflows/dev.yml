@@ -32,6 +32,14 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: blacksmith dependency cache
+        uses: useblacksmith/cache@v5
+
+      - name: blacksmith docker layer cache
+        uses: useblacksmith/build-push-action@v1
+        with:
+          setup-only: true
+
       - name: Set environment variables
         run: |
           echo "DOCKERHUB_REPO=${{ vars.DOCKERHUB_REPO }}" >> $GITHUB_ENV
