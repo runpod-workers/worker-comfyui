@@ -733,6 +733,54 @@ def handler(job):
                         error_msg = f"Failed to fetch image data for {filename} from /view endpoint."
                         errors.append(error_msg)
 
+            if "gifs" in node_output:
+                print(
+                    f"worker-comfyui - Node {node_id} contains {len(node_output['gifs'])} video(s)"
+                )
+                for video_info in node_output["gifs"]:
+                    print(f"worker-comfyui - video_info: {video_info}")
+                    filename = video_info.get("filename")
+                    if video_info.get("type") == "temp":
+                        print(
+                            f"worker-comfyui - Skipping video {filename} because type is 'temp'"
+                        )
+                        continue
+                    if os.environ.get("BUCKET_ENDPOINT_URL"):
+                        file_location = video_info.get("fullpath")
+                        try:
+                            print(f"worker-comfyui - Uploading {filename} to S3...")
+                            s3_url = rp_upload.upload_file_to_bucket(
+                                file_name=filename,
+                                file_location=file_location,
+                                prefix=f"comfy/{job_id}",
+                                extra_args={"ContentType": f"video/{filename.split('.')[-1]}"}
+                            )
+                            os.remove(file_location)  # Clean up local video file
+                            print(
+                                f"worker-comfyui - Uploaded {filename} to S3: {s3_url}"
+                            )
+                            # Append dictionary with filename and URL
+                            output_data.append(
+                                {
+                                    "filename": filename,
+                                    "type": "s3_url",
+                                    "data": s3_url,
+                                }
+                            )
+                        except Exception as e:
+                            error_msg = f"Error uploading {filename} to S3: {e}"
+                            print(f"worker-comfyui - {error_msg}")
+                            errors.append(error_msg)
+                            if "file_location" in locals() and os.path.exists(
+                                file_location
+                            ):
+                                try:
+                                    os.remove(file_location)
+                                except OSError as rm_err:
+                                    print(
+                                        f"worker-comfyui - Error removing local video file {file_location}: {rm_err}"
+                                    )
+             
             # Check for other output types
             other_keys = [k for k in node_output.keys() if k != "images"]
             if other_keys:
