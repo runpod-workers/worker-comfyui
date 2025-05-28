@@ -10,6 +10,20 @@ Run [ComfyUI](https://github.com/comfyanonymous/ComfyUI) workflows as a serverle
 
 ---
 
+## What is included?
+
+This worker comes with the **FLUX.1-dev-fp8** (`flux1-dev-fp8.safetensors`) model pre-installed and works only with this model when deployed from the hub. If you want to use a different model, you have to [deploy the endpoint](https://github.com/runpod-workers/worker-comfyui/blob/main/docs/deployment.md) using one of these pre-defined Docker images:
+
+- `runpod/worker-comfyui:<version>-base` - Clean ComfyUI install with no models
+- `runpod/worker-comfyui:<version>-flux1-schnell` - FLUX.1 schnell model
+- `runpod/worker-comfyui:<version>-flux1-dev` - FLUX.1 dev model
+- `runpod/worker-comfyui:<version>-sdxl` - Stable Diffusion XL model
+- `runpod/worker-comfyui:<version>-sd3` - Stable Diffusion 3 medium model
+
+Replace `<version>` with the latest release version from [GitHub Releases](https://github.com/runpod-workers/worker-comfyui/releases)
+
+If you need a different model or you have a LoRA or need custom nodes, then please follow our [Customization Guide](https://github.com/runpod-workers/worker-comfyui/blob/main/docs/customization.md) to create your own custom worker.
+
 ## Usage
 
 The worker accepts the following input parameters:
