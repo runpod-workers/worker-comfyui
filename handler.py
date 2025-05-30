@@ -520,7 +520,8 @@ def handler(job):
     ws = None
     client_id = str(uuid.uuid4())
     prompt_id = None
-    output_data = []
+    output_data_images = []
+    output_data_videos = []
     errors = []
 
     try:
@@ -690,7 +691,7 @@ def handler(job):
                                     f"worker-comfyui - Uploaded {filename} to S3: {s3_url}"
                                 )
                                 # Append dictionary with filename and URL
-                                output_data.append(
+                                output_data_images.append(
                                     {
                                         "filename": filename,
                                         "type": "s3_url",
@@ -717,7 +718,7 @@ def handler(job):
                                     "utf-8"
                                 )
                                 # Append dictionary with filename and base64 data
-                                output_data.append(
+                                output_data_images.append(
                                     {
                                         "filename": filename,
                                         "type": "base64",
@@ -760,7 +761,7 @@ def handler(job):
                                 f"worker-comfyui - Uploaded {filename} to S3: {s3_url}"
                             )
                             # Append dictionary with filename and URL
-                            output_data.append(
+                            output_data_videos.append(
                                 {
                                     "filename": filename,
                                     "type": "s3_url",
@@ -814,9 +815,13 @@ def handler(job):
             ws.close()
 
     final_result = {}
-
-    if output_data:
-        final_result["images"] = output_data
+    output_data = output_data_images + output_data_videos
+    
+    if output_data_images:
+        final_result["images"] = output_data_images
+    
+    if output_data_videos:
+        final_result["videos"] = output_data_videos
 
     if errors:
         final_result["errors"] = errors
@@ -835,7 +840,7 @@ def handler(job):
         final_result["status"] = "success_no_images"
         final_result["images"] = []
 
-    print(f"worker-comfyui - Job completed. Returning {len(output_data)} image(s).")
+    print(f"worker-comfyui - Job completed. Returning {len(output_data)} image/video(s).")
     return final_result
 
 
