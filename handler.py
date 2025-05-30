@@ -816,7 +816,7 @@ def handler(job):
 
     final_result = {}
     output_data = output_data_images + output_data_videos
-    
+
     if output_data_images:
         final_result["images"] = output_data_images
     
@@ -828,16 +828,16 @@ def handler(job):
         print(f"worker-comfyui - Job completed with errors/warnings: {errors}")
 
     if not output_data and errors:
-        print(f"worker-comfyui - Job failed with no output images.")
+        print(f"worker-comfyui - Job failed with no output images/videos.")
         return {
             "error": "Job processing failed",
             "details": errors,
         }
     elif not output_data and not errors:
         print(
-            f"worker-comfyui - Job completed successfully, but the workflow produced no images."
+            f"worker-comfyui - Job completed successfully, but the workflow produced no images/videos."
         )
-        final_result["status"] = "success_no_images"
+        final_result["status"] = "success_no_images_or_videos"
         final_result["images"] = []
 
     print(f"worker-comfyui - Job completed. Returning {len(output_data)} image/video(s).")
