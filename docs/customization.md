@@ -24,7 +24,7 @@ This is the most flexible and recommended approach for creating reproducible, cu
 3.  **Install Custom Nodes:** Use the `comfy-node-install` (we had introduce our own cli tool here, as there is a [problem with comfy-cli not showing errors during installation](https://github.com/Comfy-Org/comfy-cli/pull/275)) command to add custom nodes by their name or URL, see [Comfy Registry](https://registry.comfy.org) to find the correct name. You can list multiple nodes.
     ```Dockerfile
     # install custom nodes using comfy-cli
-    RUN comfy-node-installl comfyui-kjnodes comfyui-ic-light
+    RUN comfy-node-install comfyui-kjnodes comfyui-ic-light
     ```
 4.  **Download Models:** Use the `comfy model download` command to fetch models and place them in the correct ComfyUI directories.
 
