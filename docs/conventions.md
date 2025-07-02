@@ -67,3 +67,23 @@ This document outlines the key operational and structural conventions for the `w
 - While not enforced by tooling, aim for code clarity and consistency. Follow general Python best practices (e.g., PEP 8).
 - Use meaningful variable and function names.
 - Add comments where the logic is non-obvious.
+
+### **Model Type Detection**
+
+Models are categorized based on node types using these mappings:
+
+- `UpscaleModelLoader` → `upscale_models`
+- `VAELoader` → `vae`
+- `UNETLoader`, `UnetLoaderGGUF`, `Hy3DModelLoader` → `diffusion_models`
+- `DualCLIPLoader`, `TripleCLIPLoader` → `text_encoders`
+- `LoraLoader` → `loras`
+- And additional specialized loaders for proper model categorization
+
+## Custom Node Dependencies
+
+When extending the base image with custom nodes, some nodes may require specific dependency versions to function correctly.
+
+### **Known Compatibility Issues**
+
+- **ComfyUI-BrushNet dependency issue:** Requires specific dependency versions: `diffusers>=0.29.0`, `accelerate>=0.29.0,<0.32.0`, and `peft>=0.7.0` to resolve import errors
+- **Pattern for fixing:** When encountering import errors from custom nodes, check the dependency chain and ensure compatible versions are installed in the Dockerfile using `uv pip install`
