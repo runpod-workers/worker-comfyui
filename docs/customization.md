@@ -18,7 +18,7 @@ This is the most flexible and recommended approach for creating reproducible, cu
 1.  **Create a `Dockerfile`:** In your own project directory, create a file named `Dockerfile`.
 2.  **Start with a Base Image:** Begin your `Dockerfile` by referencing one of the official base images. Using the `-base` tag is recommended as it provides a clean ComfyUI install with necessary tools like `comfy-cli` but without pre-packaged models.
     ```Dockerfile
-    # start from a clean base image (replace <version> with the desired [release](https://github.com/runpod/worker-comfyui/releases))
+    # start from a clean base image (replace <version> with the desired [release](https://github.com/runpod-workers/worker-comfyui/releases))
     FROM runpod/worker-comfyui:<version>-base
     ```
 3.  **Install Custom Nodes:** Use the `comfy-node-install` (we had introduce our own cli tool here, as there is a [problem with comfy-cli not showing errors during installation](https://github.com/Comfy-Org/comfy-cli/pull/275)) command to add custom nodes by their name or URL, see [Comfy Registry](https://registry.comfy.org) to find the correct name. You can list multiple nodes.
