@@ -5,7 +5,7 @@ ARG BASE_IMAGE=nvidia/cuda:12.6.3-cudnn-runtime-ubuntu24.04
 FROM ${BASE_IMAGE} AS base
 
 # Build arguments for this stage (defaults provided by docker-bake.hcl)
-ARG COMFYUI_VERSION
+ARG COMFYUI_VERSION=latest
 ARG CUDA_VERSION_FOR_COMFY
 ARG ENABLE_PYTORCH_UPGRADE
 ARG PYTORCH_INDEX_URL
@@ -57,7 +57,7 @@ RUN if [ -n "${CUDA_VERSION_FOR_COMFY}" ]; then \
     fi
 
 # Upgrade PyTorch if needed (for newer CUDA versions)
-RUN if [ "$ENABLE_PYTORCH_UPGRADE" = "true" ]; then \
+RUN if [ "${ENABLE_PYTORCH_UPGRADE}" = "true" ]; then \
       uv pip install --force-reinstall torch torchvision torchaudio --index-url ${PYTORCH_INDEX_URL}; \
     fi
 
@@ -71,7 +71,7 @@ ADD src/extra_model_paths.yaml ./
 WORKDIR /
 
 # Install Python runtime dependencies for the handler
-RUN uv pip install runpod requests websocket-client
+RUN uv pip install runpod==1.7.13 requests websocket-client
 
 # Add application code and scripts
 ADD src/start.sh handler.py test_input.json ./
