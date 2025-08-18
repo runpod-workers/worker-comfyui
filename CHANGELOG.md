@@ -1,3 +1,10 @@
+# [5.3.0](https://github.com/runpod-workers/worker-comfyui/compare/5.2.0...5.3.0) (2025-07-22)
+
+
+### Features
+
+* add support for 5090/B200 ([#150](https://github.com/runpod-workers/worker-comfyui/issues/150)) ([7492513](https://github.com/runpod-workers/worker-comfyui/commit/7492513490bc1723503dded682ee2c313a1c8ea6))
+
 # [5.2.0](https://github.com/runpod-workers/worker-comfyui/compare/5.1.1...5.2.0) (2025-07-02)
 
 
