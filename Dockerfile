@@ -138,7 +138,6 @@ FROM base AS final
 
 # Copy models from stage 2 to the final image
 COPY --from=downloader /comfyui/models /comfyui/models
-
 RUN cd /workspace/ComfyUI/custom_nodes && \
     git clone https://github.com/chrisgoringe/cg-use-everywhere && \
     git clone https://github.com/pythongosssss/ComfyUI-Custom-Scripts
