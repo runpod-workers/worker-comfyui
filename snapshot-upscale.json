@@ -1,0 +1,15 @@
+{
+  "comfyui": "v0.3.30",
+  "timestamp": "2025-08-19T12:00:00.000Z",
+  "git_custom_nodes": {
+    "https://github.com/chrisgoringe/cg-use-everywhere": {
+      "hash": "main",
+      "disabled": false
+    },
+    "https://github.com/pythongosssss/ComfyUI-Custom-Scripts": {
+      "hash": "main",
+      "disabled": false
+    }
+  },
+  "file_custom_nodes": []
+}
