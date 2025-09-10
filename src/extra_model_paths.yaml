@@ -13,3 +13,4 @@ runpod_worker_comfy:
   diffusion_models: models/diffusion_models/
   audio_encoders: models/audio_encoders/
   text_encoders: models/text_encoders/
+  loras: models/loras/
