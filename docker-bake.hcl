@@ -138,6 +138,23 @@ target "flux1-dev-fp8" {
   inherits = ["base"]
 }
 
+target "flux1-dev-kontext" {
+  context = "."
+  dockerfile = "Dockerfile"
+  target = "final"
+  args = {
+    BASE_IMAGE = "${BASE_IMAGE}"
+    COMFYUI_VERSION = "${COMFYUI_VERSION}"
+    CUDA_VERSION_FOR_COMFY = "${CUDA_VERSION_FOR_COMFY}"
+    ENABLE_PYTORCH_UPGRADE = "${ENABLE_PYTORCH_UPGRADE}"
+    PYTORCH_INDEX_URL = "${PYTORCH_INDEX_URL}"
+    MODEL_TYPE = "flux1-dev-kontext"
+    HUGGINGFACE_ACCESS_TOKEN = "${HUGGINGFACE_ACCESS_TOKEN}"
+  }
+  tags = ["${DOCKERHUB_REPO}/${DOCKERHUB_IMG}:${RELEASE_VERSION}-flux1-dev-kontext"]
+  inherits = ["base"]
+}
+
 target "base-cuda12-8-1" {
   context = "."
   dockerfile = "Dockerfile"

@@ -39,13 +39,14 @@ This is the simplest method if the official images meet your needs.
 
 ### GPU recommendations (for Official Images)
 
-| Model                     | Image Tag Suffix | Minimum VRAM Required | Recommended Container Size |
-| ------------------------- | ---------------- | --------------------- | -------------------------- |
-| Stable Diffusion XL       | `sdxl`           | 8 GB                  | 15 GB                      |
-| Stable Diffusion 3 Medium | `sd3`            | 5 GB                  | 20 GB                      |
-| FLUX.1 Schnell            | `flux1-schnell`  | 24 GB                 | 30 GB                      |
-| FLUX.1 dev                | `flux1-dev`      | 24 GB                 | 30 GB                      |
-| Base (No models)          | `base`           | N/A                   | 5 GB                       |
+| Model                     | Image Tag Suffix     | Minimum VRAM Required | Recommended Container Size |
+| ------------------------- | -------------------- | --------------------- | -------------------------- |
+| Stable Diffusion XL       | `sdxl`               | 8 GB                  | 15 GB                      |
+| Stable Diffusion 3 Medium | `sd3`                | 5 GB                  | 20 GB                      |
+| FLUX.1 Schnell            | `flux1-schnell`      | 24 GB                 | 30 GB                      |
+| FLUX.1 dev                | `flux1-dev`          | 24 GB                 | 30 GB                      |
+| FLUX.1 dev kontext        | `flux1-kontext`      | 24 GB                 | 30 GB                      |
+| Base (No models)          | `base`               | N/A                   | 5 GB                       |
 
 _Note: Container sizes are approximate and might vary slightly. Custom images will vary based on included models/nodes._
 

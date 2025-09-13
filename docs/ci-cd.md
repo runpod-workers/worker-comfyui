@@ -15,11 +15,11 @@ If you have forked this repository and want to use these actions to publish imag
 
 1.  **Secrets** (`Settings > Secrets and variables > Actions > New repository secret`):
 
-    | Secret Name                | Description                                                                | Example Value       |
-    | -------------------------- | -------------------------------------------------------------------------- | ------------------- |
-    | `DOCKERHUB_USERNAME`       | Your Docker Hub username.                                                  | `your-dockerhub-id` |
-    | `DOCKERHUB_TOKEN`          | Your Docker Hub access token with read/write permissions.                  | `dckr_pat_...`      |
-    | `HUGGINGFACE_ACCESS_TOKEN` | Your READ access token from Hugging Face (required only for building SD3). | `hf_...`            |
+    | Secret Name                | Description                                                                       | Example Value       |
+    | -------------------------- | --------------------------------------------------------------------------------- | ------------------- |
+    | `DOCKERHUB_USERNAME`       | Your Docker Hub username.                                                         | `your-dockerhub-id` |
+    | `DOCKERHUB_TOKEN`          | Your Docker Hub access token with read/write permissions.                         | `dckr_pat_...`      |
+    | `HUGGINGFACE_ACCESS_TOKEN` | Your READ access token from Hugging Face (required for SD3, non fp8 flux models). | `hf_...`            |
 
 2.  **Variables** (`Settings > Secrets and variables > Actions > New repository variable`):
 
