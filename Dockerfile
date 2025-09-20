@@ -138,3 +138,9 @@ FROM base AS final
 
 # Copy models from stage 2 to the final image
 COPY --from=downloader /comfyui/models /comfyui/models
+
+# Install VibeVoice-ComfyUI
+RUN comfy-node-install https://github.com/Enemyx-net/VibeVoice-ComfyUI
+
+# Copy default voice file
+COPY Input/ /comfyui/input/
