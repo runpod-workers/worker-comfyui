@@ -6,7 +6,7 @@ This document outlines the environment variables available for configuring the `
 
 | Environment Variable | Description                                                                                                                                                                                                                  | Default |
 | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
-| `REFRESH_WORKER`     | When `true`, the worker pod will stop after each completed job to ensure a clean state for the next job. See the [RunPod documentation](https://docs.runpod.io/docs/handler-additional-controls#refresh-worker) for details. | `false` |
+| `REFRESH_WORKER`     | When `true`, the worker pod will stop after each completed job to ensure a clean state for the next job. See the [RunPod documentation]([https://docs.runpod.io/docs/handler-additional-controls#refresh-worker](https://docs.runpod.io/serverless/workers/handler-functions#worker-refresh)) for details. | `false` |
 | `SERVE_API_LOCALLY`  | When `true`, enables a local HTTP server simulating the RunPod environment for development and testing. See the [Development Guide](development.md#local-api) for more details.                                              | `false` |
 
 ## Logging Configuration
