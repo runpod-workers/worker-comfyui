@@ -78,11 +78,12 @@ Use the `/runsync` endpoint for synchronous requests that wait for the job to co
 
 The following tables describe the fields within the `input` object:
 
-| Field Path       | Type   | Required | Description                                                                                                                                |
-| ---------------- | ------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `input`          | Object | Yes      | Top-level object containing request data.                                                                                                  |
-| `input.workflow` | Object | Yes      | The ComfyUI workflow exported in the [required format](#getting-the-workflow-json).                                                        |
-| `input.images`   | Array  | No       | Optional array of input images. Each image is uploaded to ComfyUI's `input` directory and can be referenced by its `name` in the workflow. |
+| Field Path                | Type   | Required | Description                                                                                                                                                                                                                |
+| ------------------------- | ------ | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `input`                   | Object | Yes      | Top-level object containing request data.                                                                                                                                                                                  |
+| `input.workflow`          | Object | Yes      | The ComfyUI workflow exported in the [required format](#getting-the-workflow-json).                                                                                                                                        |
+| `input.images`            | Array  | No       | Optional array of input images. Each image is uploaded to ComfyUI's `input` directory and can be referenced by its `name` in the workflow.                                                                                 |
+| `input.api_key_comfy_org` | String | No       | Optional per-request API key for ComfyUI API Nodes. If provided, it will be injected into the `/prompt` payload as `extra_data.api_key_comfy_org`. Overrides the `COMFY_ORG_API_KEY` environment variable if both are set. |
 
 #### `input.images` Object
 

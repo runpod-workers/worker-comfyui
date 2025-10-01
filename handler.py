@@ -165,8 +165,15 @@ def validate_input(job_input):
                 "'images' must be a list of objects with 'name' and 'image' keys",
             )
 
+    # Optional: API key for Comfy.org API Nodes, passed per-request
+    api_key_comfy_org = job_input.get("api_key_comfy_org")
+
     # Return validated data and no error
-    return {"workflow": workflow, "images": images}, None
+    return {
+        "workflow": workflow,
+        "images": images,
+        "api_key_comfy_org": api_key_comfy_org,
+    }, None
 
 
 def check_server(url, retries=500, delay=50):
@@ -318,7 +325,7 @@ def get_available_models():
         return {}
 
 
-def queue_workflow(workflow, client_id):
+def queue_workflow(workflow, client_id, api_key_comfy_org=None):
     """
     Queue a workflow to be processed by ComfyUI
 
@@ -334,6 +341,13 @@ def queue_workflow(workflow, client_id):
     """
     # Include client_id in the prompt payload
     payload = {"prompt": workflow, "client_id": client_id}
+
+    # Optionally inject Comfy.org API key for API Nodes.
+    # Precedence: per-request key (argument) overrides environment variable.
+    key_from_env = os.environ.get("COMFY_ORG_API_KEY")
+    effective_key = api_key_comfy_org if api_key_comfy_org else key_from_env
+    if effective_key:
+        payload["extra_data"] = {"api_key_comfy_org": effective_key}
     data = json.dumps(payload).encode("utf-8")
 
     # Use requests for consistency and timeout
@@ -533,7 +547,12 @@ def handler(job):
 
         # Queue the workflow
         try:
-            queued_workflow = queue_workflow(workflow, client_id)
+            # Pass per-request API key if provided in input
+            queued_workflow = queue_workflow(
+                workflow,
+                client_id,
+                api_key_comfy_org=validated_data.get("api_key_comfy_org"),
+            )
             prompt_id = queued_workflow.get("prompt_id")
             if not prompt_id:
                 raise ValueError(
