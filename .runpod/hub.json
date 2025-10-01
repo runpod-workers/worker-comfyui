@@ -3,7 +3,7 @@
   "description": "Generate images with ComfyUI using FLUX.1-dev (fp8)",
   "type": "serverless",
   "category": "image",
-  "iconUrl": "https://cpjrphpz3t5wbwfe.public.blob.vercel-storage.com/comfyui-logo-zpFUpCZoYMn5L0Ea9hfYOKX6F9gYqx.png",
+  "iconUrl": "https://cpjrphpz3t5wbwfe.public.blob.vercel-storage.com/comfy-ui.png",
   "config": {
     "runsOn": "GPU",
     "containerDiskInGb": 20,
@@ -12,12 +12,103 @@
     "allowedCudaVersions": ["12.7", "12.6"],
     "env": [
       {
+        "key": "COMFY_ORG_API_KEY",
+        "input": {
+          "name": "Comfy.org API Key",
+          "type": "string",
+          "description": "Enter your Comfy.org API key to use API Nodes",
+          "default": "",
+          "advanced": false
+        }
+      },
+      {
+        "key": "BUCKET_ENDPOINT_URL",
+        "input": {
+          "name": "S3 Bucket Endpoint URL",
+          "type": "string",
+          "description": "Upload images to S3 (e.g. https://<bucket>.s3.<region>.amazonaws.com)",
+          "default": "",
+          "advanced": true
+        }
+      },
+      {
+        "key": "BUCKET_ACCESS_KEY_ID",
+        "input": {
+          "name": "S3 Access Key ID",
+          "type": "string",
+          "description": "AWS Access Key ID (if S3 upload is enabled)",
+          "default": "",
+          "advanced": true
+        }
+      },
+      {
+        "key": "BUCKET_SECRET_ACCESS_KEY",
+        "input": {
+          "name": "S3 Secret Access Key",
+          "type": "string",
+          "description": "AWS Secret Access Key (if S3 upload is enabled)",
+          "default": "",
+          "advanced": true
+        }
+      },
+      {
+        "key": "SERVE_API_LOCALLY",
+        "input": {
+          "name": "Serve API Locally (dev)",
+          "type": "boolean",
+          "description": "Dev only: run a local test API",
+          "default": false,
+          "advanced": true
+        }
+      },
+      {
+        "key": "COMFY_LOG_LEVEL",
+        "input": {
+          "name": "ComfyUI Log Level",
+          "type": "string",
+          "description": "Log level for ComfyUI (DEBUG, INFO, WARNING, ERROR, CRITICAL)",
+          "default": "DEBUG",
+          "advanced": true
+        }
+      },
+      {
+        "key": "WEBSOCKET_RECONNECT_ATTEMPTS",
+        "input": {
+          "name": "Websocket Reconnect Attempts",
+          "type": "number",
+          "description": "How many times to retry if the connection drops",
+          "default": 5,
+          "advanced": true
+        }
+      },
+      {
+        "key": "WEBSOCKET_RECONNECT_DELAY_S",
+        "input": {
+          "name": "Websocket Reconnect Delay (s)",
+          "type": "number",
+          "description": "Seconds to wait between reconnect attempts",
+          "default": 3,
+          "advanced": true
+        }
+      },
+      {
+        "key": "WEBSOCKET_TRACE",
+        "input": {
+          "name": "Websocket Trace",
+          "type": "boolean",
+          "description": "Detailed connection logs (debug only)",
+          "default": false,
+          "advanced": true
+        }
+      },
+      {
         "key": "REFRESH_WORKER",
         "input": {
           "name": "Refresh Worker",
           "type": "boolean",
-          "description": "When enabled, the worker will stop after each finished job to have a clean state",
-          "default": false
+          "description": "Restart the worker after each job for a clean state",
+          "default": false,
+          "advanced": true
         }
       }
     ]
