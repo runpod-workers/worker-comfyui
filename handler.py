@@ -165,8 +165,15 @@ def validate_input(job_input):
                 "'images' must be a list of objects with 'name' and 'image' keys",
             )
 
+    # Optional: API key for Comfy.org API Nodes, passed per-request
+    comfy_org_api_key = job_input.get("comfy_org_api_key")
+
     # Return validated data and no error
-    return {"workflow": workflow, "images": images}, None
+    return {
+        "workflow": workflow,
+        "images": images,
+        "comfy_org_api_key": comfy_org_api_key,
+    }, None
 
 
 def check_server(url, retries=500, delay=50):
@@ -318,13 +325,14 @@ def get_available_models():
         return {}
 
 
-def queue_workflow(workflow, client_id):
+def queue_workflow(workflow, client_id, comfy_org_api_key=None):
     """
     Queue a workflow to be processed by ComfyUI
 
     Args:
         workflow (dict): A dictionary containing the workflow to be processed
         client_id (str): The client ID for the websocket connection
+        comfy_org_api_key (str, optional): Comfy.org API key for API Nodes
 
     Returns:
         dict: The JSON response from ComfyUI after processing the workflow
@@ -334,6 +342,15 @@ def queue_workflow(workflow, client_id):
     """
     # Include client_id in the prompt payload
     payload = {"prompt": workflow, "client_id": client_id}
+
+    # Optionally inject Comfy.org API key for API Nodes.
+    # Precedence: per-request key (argument) overrides environment variable.
+    # Note: We use our consistent naming (comfy_org_api_key) but transform to
+    # ComfyUI's expected format (api_key_comfy_org) when sending.
+    key_from_env = os.environ.get("COMFY_ORG_API_KEY")
+    effective_key = comfy_org_api_key if comfy_org_api_key else key_from_env
+    if effective_key:
+        payload["extra_data"] = {"api_key_comfy_org": effective_key}
     data = json.dumps(payload).encode("utf-8")
 
     # Use requests for consistency and timeout
@@ -533,7 +550,12 @@ def handler(job):
 
         # Queue the workflow
         try:
-            queued_workflow = queue_workflow(workflow, client_id)
+            # Pass per-request API key if provided in input
+            queued_workflow = queue_workflow(
+                workflow,
+                client_id,
+                comfy_org_api_key=validated_data.get("comfy_org_api_key"),
+            )
             prompt_id = queued_workflow.get("prompt_id")
             if not prompt_id:
                 raise ValueError(
