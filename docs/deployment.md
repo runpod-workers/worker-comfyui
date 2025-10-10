@@ -53,6 +53,10 @@ _Note: Container sizes are approximate and might vary slightly. Custom images wi
 
 If you have created a custom environment using the methods in the [Customization Guide](customization.md), here's how to deploy it.
 
+> [!TIP] > **Want to skip the manual setup?**
+>
+> [ComfyUI-to-API](https://comfy.getrunpod.io) automatically generates a GitHub repository with a custom Dockerfile from your ComfyUI workflow. You can then deploy it using [Method 2: GitHub Integration](#method-2-deploying-via-runpod-github-integration) below with no manual Docker building required. See the [ComfyUI-to-API Documentation](https://docs.runpod.io/community-solutions/comfyui-to-api/overview) for details.
+
 ### Method 1: Manual Build, Push, and Deploy
 
 This method involves building your custom Docker image locally, pushing it to a registry, and then deploying that image on RunPod.

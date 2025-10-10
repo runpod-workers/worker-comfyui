@@ -12,17 +12,28 @@ Run [ComfyUI](https://github.com/comfyanonymous/ComfyUI) workflows as a serverle
 
 ## What is included?
 
-This worker comes with the **FLUX.1-dev-fp8** (`flux1-dev-fp8.safetensors`) model pre-installed and works only with this model when deployed from the hub. If you want to use a different model, you have to [deploy the endpoint](https://github.com/runpod-workers/worker-comfyui/blob/main/docs/deployment.md) using one of these pre-defined Docker images:
+This worker comes with the **FLUX.1-dev-fp8** (`flux1-dev-fp8.safetensors`) model pre-installed and **works only with this specific model** when deployed from the hub.
 
-- `runpod/worker-comfyui:<version>-base` - Clean ComfyUI install with no models
-- `runpod/worker-comfyui:<version>-flux1-schnell` - FLUX.1 schnell model
-- `runpod/worker-comfyui:<version>-flux1-dev` - FLUX.1 dev model
-- `runpod/worker-comfyui:<version>-sdxl` - Stable Diffusion XL model
-- `runpod/worker-comfyui:<version>-sd3` - Stable Diffusion 3 medium model
+## Want to use a different model?
 
-Replace `<version>` with the latest release version from [GitHub Releases](https://github.com/runpod-workers/worker-comfyui/releases)
+**The hub deployment only supports FLUX.1-dev-fp8.** If you need any other model, custom nodes, or LoRAs, you have two options:
 
-If you need a different model or you have a LoRA or need custom nodes, then please follow our [Customization Guide](https://github.com/runpod-workers/worker-comfyui/blob/main/docs/customization.md) to create your own custom worker.
+### Option 1: ComfyUI-to-API (Easiest & Recommended)
+
+[**ComfyUI-to-API**](https://comfy.getrunpod.io) automatically converts your ComfyUI workflow into a deployment-ready GitHub repository with all dependencies configured.
+
+**Quick Steps:**
+
+1. Export your workflow from ComfyUI using `Comfy > File > Export` (**not** `Export (API)`)
+2. Upload to [comfy.getrunpod.io](https://comfy.getrunpod.io) - It analyzes your workflow
+3. Get a custom GitHub repository with everything configured
+4. Deploy using RunPod's GitHub integration
+
+**See the full guide:** [ComfyUI-to-API](https://docs.runpod.io/community-solutions/comfyui-to-api/overview)
+
+### Option 2: Manual Customization
+
+Follow the [Customization Guide](https://github.com/runpod-workers/worker-comfyui/blob/main/docs/customization.md) to manually create your own custom worker by editing Dockerfiles and managing dependencies yourself.
 
 ## Usage
 
