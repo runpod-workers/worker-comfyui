@@ -51,9 +51,9 @@ RUN uv pip install comfy-cli pip setuptools wheel
 
 # Install ComfyUI
 RUN if [ -n "${CUDA_VERSION_FOR_COMFY}" ]; then \
-      /usr/bin/yes | comfy --workspace /comfyui install --version "${COMFYUI_VERSION}" --cuda-version "${CUDA_VERSION_FOR_COMFY}" --nvidia; \
+      comfy --skip-prompt --workspace /comfyui install --version "${COMFYUI_VERSION}" --cuda-version "${CUDA_VERSION_FOR_COMFY}" --nvidia; \
     else \
-      /usr/bin/yes | comfy --workspace /comfyui install --version "${COMFYUI_VERSION}" --nvidia; \
+      comfy --skip-prompt --workspace /comfyui install --version "${COMFYUI_VERSION}" --nvidia; \
     fi
 
 # Upgrade PyTorch if needed (for newer CUDA versions)
