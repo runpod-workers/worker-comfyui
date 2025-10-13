@@ -2,9 +2,17 @@
 
 This guide covers methods for adding your own models, custom nodes, and static input files into a custom `worker-comfyui`.
 
-There are two primary methods for customizing your setup:
+> [!TIP] > **Looking for the easiest way to deploy custom workflows?**
+>
+> [ComfyUI-to-API](https://comfy.getrunpod.io) automatically generates a custom Dockerfile and GitHub repository from your ComfyUI workflow, eliminating the manual setup described below. See the [ComfyUI-to-API Documentation](https://docs.runpod.io/community-solutions/comfyui-to-api/overview) for details.
+>
+> Use the manual methods below only if you need fine-grained control or prefer to manage everything yourself.
 
-1.  **Custom Dockerfile (recommended):** Create your own `Dockerfile` starting `FROM` one of the official `worker-comfyui` base images. This allows you to bake specific custom nodes, models, and input files directly into your image using `comfy-cli` commands. **This method does not require forking the `worker-comfyui` repository.**
+---
+
+There are two primary methods for **manual** customization:
+
+1.  **Custom Dockerfile (recommended for manual setup):** Create your own `Dockerfile` starting `FROM` one of the official `worker-comfyui` base images. This allows you to bake specific custom nodes, models, and input files directly into your image using `comfy-cli` commands. **This method does not require forking the `worker-comfyui` repository.**
 2.  **Network Volume:** Store models on a persistent network volume attached to your RunPod endpoint. This is useful if you frequently change models or have very large models you don't want to include in the image build process.
 
 ## Method 1: Custom Dockerfile
