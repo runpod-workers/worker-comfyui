@@ -35,14 +35,19 @@ This worker comes with the **FLUX.1-dev-fp8** (`flux1-dev-fp8.safetensors`) mode
 
 Follow the [Customization Guide](https://github.com/runpod-workers/worker-comfyui/blob/main/docs/customization.md) to manually create your own custom worker by editing Dockerfiles and managing dependencies yourself.
 
+## Configuration
+
+For all available environment variables including Comfy.org API key, S3 upload, logging, and debugging options, see the [Configuration Guide](https://github.com/runpod-workers/worker-comfyui/blob/main/docs/configuration.md).
+
 ## Usage
 
 The worker accepts the following input parameters:
 
-| Parameter  | Type     | Default | Required | Description                                                                                                                                                                                                                                    |
-| :--------- | :------- | :------ | :------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `workflow` | `object` | `None`  | **Yes**  | The entire ComfyUI workflow in the API JSON format. See the main project [README.md](https://github.com/runpod-workers/worker-comfyui#how-to-get-the-workflow-from-comfyui) for instructions on how to export this from the ComfyUI interface. |
-| `images`   | `array`  | `[]`    | No       | An optional array of input images. Each image object should contain `name` (string, required, filename to reference in the workflow) and `image` (string, required, base64-encoded image data).                                                |
+| Parameter           | Type     | Default | Required | Description                                                                                                                                                                                                                                    |
+| :------------------ | :------- | :------ | :------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `workflow`          | `object` | `None`  | **Yes**  | The entire ComfyUI workflow in the API JSON format. See the main project [README.md](https://github.com/runpod-workers/worker-comfyui#how-to-get-the-workflow-from-comfyui) for instructions on how to export this from the ComfyUI interface. |
+| `images`            | `array`  | `[]`    | No       | An optional array of input images. Each image object should contain `name` (string, required, filename to reference in the workflow) and `image` (string, required, base64-encoded image data).                                                |
+| `comfy_org_api_key` | `string` | `None`  | No       | Optional Comfy.org API key for ComfyUI API Nodes. Overrides the `COMFY_ORG_API_KEY` environment variable if set.                                                                                                                               |
 
 > [!NOTE]
 > The `input.images` array has specific size constraints based on RunPod API limits (10MB for `/run`, 20MB for `/runsync`). See the main [README.md](https://github.com/runpod-workers/worker-comfyui#inputimages) for details.
