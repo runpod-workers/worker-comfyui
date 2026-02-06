@@ -134,10 +134,9 @@ RUN if [ "$MODEL_TYPE" = "flux1-dev-fp8" ]; then \
     fi
 
 RUN if [ "$MODEL_TYPE" = "z-image-turbo" ]; then \
-      wget -q -O models/text_encoders/qwen_3_4b.safetensors https://huggingface.co/Comfy-Org/z_image_turbo/resolve/main/split_files/text_encoders/qwen_3_4b.safetensors && \
-      wget -q -O models/diffusion_models/z_image_turbo_bf16.safetensors https://huggingface.co/Comfy-Org/z_image_turbo/resolve/main/split_files/diffusion_models/z_image_turbo_bf16.safetensors && \
-      wget -q -O models/vae/ae.safetensors https://huggingface.co/Comfy-Org/z_image_turbo/resolve/main/split_files/vae/ae.safetensors && \
-      wget -q -O models/model_patches/Z-Image-Turbo-Fun-Controlnet-Union.safetensors https://huggingface.co/alibaba-pai/Z-Image-Turbo-Fun-Controlnet-Union/resolve/main/Z-Image-Turbo-Fun-Controlnet-Union.safetensors; \
+      wget -q -O models/diffusion_models/flux2_klein_9b.safetensors https://civitai.com/api/download/models/2657142?type=Model&format=SafeTensor&size=full&fp=bf16 && \
+      wget -q -O models/text_encoders/qwen_3_8b_fp8.safetensors https://huggingface.co/Comfy-Org/vae-text-encorder-for-flux-klein-9b/resolve/main/split_files/text_encoders/qwen_3_8b_fp8mixed.safetensors?download=true && \
+      wget -q -O models/vae/flux2-vae.safetensors https://huggingface.co/Comfy-Org/vae-text-encorder-for-flux-klein-9b/resolve/main/split_files/vae/flux2-vae.safetensors?download=true && \
     fi
 
 # Stage 3: Final image
