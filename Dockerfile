@@ -94,6 +94,9 @@ ENV PIP_NO_INPUT=1
 COPY scripts/comfy-manager-set-mode.sh /usr/local/bin/comfy-manager-set-mode
 RUN chmod +x /usr/local/bin/comfy-manager-set-mode
 
+# Default to API server mode so pods don't crash-loop on test_input.json
+ENV SERVE_API_LOCALLY=true
+
 # Set the default command to run when starting the container
 CMD ["/start.sh"]
 
