@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="refresh" content="3" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ComfyUI — Initializing</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0f0f0f;
+      color: #e2e2e2;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      padding: 32px 16px;
+    }
+
+    .logo {
+      width: 48px;
+      height: 48px;
+      background: #7c3aed;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo svg { width: 28px; height: 28px; fill: #fff; }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #fff;
+      text-align: center;
+    }
+
+    p {
+      font-size: 0.9rem;
+      color: #888;
+      text-align: center;
+      max-width: 400px;
+      line-height: 1.6;
+    }
+
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid #2a2a2a;
+      border-top-color: #7c3aed;
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    footer {
+      position: fixed;
+      bottom: 24px;
+      font-size: 0.75rem;
+      color: #444;
+    }
+
+    footer a { color: #7c3aed; text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="logo">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M4 3h8a5 5 0 0 1 0 10H9l6 8H11l-6-8H7V3H4zm3 3v4h5a2 2 0 0 0 0-4H7z"/>
+    </svg>
+  </div>
+
+  <h1>ComfyUI is initializing&hellip;</h1>
+
+  <div class="spinner"></div>
+
+  <p>
+    Your pod is starting up. ComfyUI is loading models and custom nodes —
+    this usually takes 5&ndash;30 seconds.
+    This page will refresh automatically.
+  </p>
+
+  <footer>
+    Powered by <a href="https://runpod.io" target="_blank" rel="noopener">RunPod</a>
+  </footer>
+</body>
+</html>

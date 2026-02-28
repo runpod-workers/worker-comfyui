@@ -31,8 +31,10 @@ RUN apt-get update && apt-get install -y \
     libxext6 \
     libxrender1 \
     ffmpeg \
+    nginx \
     && ln -sf /usr/bin/python3.12 /usr/bin/python \
-    && ln -sf /usr/bin/pip3 /usr/bin/pip
+    && ln -sf /usr/bin/pip3 /usr/bin/pip \
+    && rm -f /etc/nginx/sites-enabled/default
 
 # Clean up to reduce image size
 RUN apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
@@ -72,6 +74,10 @@ WORKDIR /
 
 # Install Python runtime dependencies for the handler
 RUN uv pip install runpod requests websocket-client
+
+# Add nginx config and init-page assets
+COPY src/nginx.conf /etc/nginx/nginx.conf
+COPY src/loading-page/index.html /opt/init-page/index.html
 
 # Add application code and scripts
 ADD src/start.sh src/network_volume.py handler.py test_input.json ./

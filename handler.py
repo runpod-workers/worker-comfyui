@@ -45,14 +45,14 @@ if os.environ.get("WEBSOCKET_TRACE", "false").lower() == "true":
     # protocol errors but can be noisy in production – therefore gated behind an env-var.
     websocket.enableTrace(True)
 
-# Host where ComfyUI is running
-COMFY_HOST = "127.0.0.1:8188"
+# Host where ComfyUI is running (bypasses nginx, connects directly to ComfyUI on 8189)
+COMFY_HOST = "127.0.0.1:8189"
 # Enforce a clean state after each job is done
 # see https://docs.runpod.io/docs/handler-additional-controls#refresh-worker
 REFRESH_WORKER = os.environ.get("REFRESH_WORKER", "false").lower() == "true"
 
 # ---------------------------------------------------------------------------
-# Helper: quick reachability probe of ComfyUI HTTP endpoint (port 8188)
+# Helper: quick reachability probe of ComfyUI HTTP endpoint (port 8189)
 # ---------------------------------------------------------------------------
 
 
@@ -90,7 +90,7 @@ def _attempt_websocket_reconnect(ws_url, max_attempts, delay_s, initial_error):
     last_reconnect_error = initial_error
     for attempt in range(max_attempts):
         # Log current server status before each reconnect attempt so that we can
-        # see whether ComfyUI is still alive (HTTP port 8188 responding) even if
+        # see whether ComfyUI is still alive (HTTP port 8189 responding) even if
         # the websocket dropped. This is extremely useful to differentiate
         # between a network glitch and an outright ComfyUI crash/OOM-kill.
         srv_status = _comfy_server_status()
