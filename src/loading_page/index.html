@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ComfyUI — Starting up</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0f0f17;
+      color: #e2e2f0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+    }
+
+    .logo {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: #fff;
+    }
+
+    .logo span { color: #8b5cf6; }
+
+    .spinner-ring {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: 4px solid #2a2a3e;
+      border-top-color: #8b5cf6;
+      animation: spin 0.9s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .status {
+      font-size: 0.95rem;
+      color: #9090b0;
+      min-height: 1.4em;
+    }
+
+    .progress-bar-wrap {
+      width: 260px;
+      height: 4px;
+      background: #2a2a3e;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: #8b5cf6;
+      border-radius: 2px;
+      transition: width 0.4s ease;
+    }
+
+    .hint {
+      font-size: 0.75rem;
+      color: #555570;
+    }
+  </style>
+</head>
+<body>
+  <div class="logo">Comfy<span>UI</span></div>
+  <div class="spinner-ring"></div>
+  <p class="status" id="status">Starting up…</p>
+  <div class="progress-bar-wrap">
+    <div class="progress-bar" id="progress"></div>
+  </div>
+  <p class="hint">You will be redirected automatically when the server is ready.</p>
+
+  <script>
+    var statusEl   = document.getElementById('status');
+    var progressEl = document.getElementById('progress');
+    var attempt    = 0;
+
+    var messages = [
+      'Starting up…',
+      'Loading models…',
+      'Warming up…',
+      'Almost there…',
+      'Still working…',
+    ];
+
+    function setProgress(pct) {
+      progressEl.style.width = Math.min(pct, 95) + '%';
+    }
+
+    function tick() {
+      attempt++;
+      statusEl.textContent = messages[Math.min(Math.floor(attempt / 4), messages.length - 1)];
+      setProgress(attempt * 3);
+
+      fetch('/ready', { signal: AbortSignal.timeout(4000) })
+        .then(function (resp) {
+          if (resp.status < 500) {
+            statusEl.textContent = 'Ready! Loading…';
+            setProgress(100);
+            // Navigate to root — nginx will now proxy through to ComfyUI
+            setTimeout(function () { window.location.href = '/'; }, 300);
+          } else {
+            setTimeout(tick, 3000);
+          }
+        })
+        .catch(function () { setTimeout(tick, 3000); });
+    }
+
+    setTimeout(tick, 3000);
+  </script>
+</body>
+</html>

@@ -25,6 +25,7 @@ RUN apt-get update && apt-get install -y \
     python3.12-venv \
     git \
     wget \
+    nginx \
     libgl1 \
     libglib2.0-0 \
     libsm6 \
@@ -76,6 +77,10 @@ RUN uv pip install runpod requests websocket-client
 # Add application code and scripts
 ADD src/start.sh src/network_volume.py handler.py test_input.json ./
 RUN chmod +x /start.sh
+
+# Set up nginx loading page (served at port 8189 while ComfyUI is starting)
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY src/loading_page /usr/share/nginx/html/loading-page
 
 # Add script to install custom nodes
 COPY scripts/comfy-node-install.sh /usr/local/bin/comfy-node-install
