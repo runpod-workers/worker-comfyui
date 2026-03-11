@@ -1,5 +1,23 @@
 #!/usr/bin/env bash
 
+# Start SSH server if PUBLIC_KEY is set (enables remote access and dev-sync.sh)
+if [ -n "$PUBLIC_KEY" ]; then
+    mkdir -p ~/.ssh
+    echo "$PUBLIC_KEY" >> ~/.ssh/authorized_keys
+    chmod 700 ~/.ssh
+    chmod 600 ~/.ssh/authorized_keys
+
+    # Generate host keys if they don't exist (removed during image build for security)
+    for key_type in rsa ecdsa ed25519; do
+        key_file="/etc/ssh/ssh_host_${key_type}_key"
+        if [ ! -f "$key_file" ]; then
+            ssh-keygen -t "$key_type" -f "$key_file" -q -N ''
+        fi
+    done
+
+    service ssh start && echo "worker-comfyui: SSH server started" || echo "worker-comfyui: SSH server could not be started" >&2
+fi
+
 # Use libtcmalloc for better memory management
 TCMALLOC="$(ldconfig -p | grep -Po "libtcmalloc.so.\d" | head -n 1)"
 export LD_PRELOAD="${TCMALLOC}"
