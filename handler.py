@@ -27,9 +27,17 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Time to wait between API check attempts in milliseconds
-COMFY_API_AVAILABLE_INTERVAL_MS = 50
-# Maximum number of API check attempts
-COMFY_API_AVAILABLE_MAX_RETRIES = 500
+COMFY_API_AVAILABLE_INTERVAL_MS = int(
+    os.environ.get("COMFY_API_AVAILABLE_INTERVAL_MS", 50)
+)
+# Maximum number of API check attempts (0 = no limit, poll while ComfyUI process is alive)
+COMFY_API_AVAILABLE_MAX_RETRIES = int(
+    os.environ.get("COMFY_API_AVAILABLE_MAX_RETRIES", 0)
+)
+# Fallback retry limit when PID file is unavailable and retries=0
+COMFY_API_FALLBACK_MAX_RETRIES = 500
+# PID file written by start.sh so we can detect if ComfyUI has crashed
+COMFY_PID_FILE = "/tmp/comfyui.pid"
 # Websocket reconnection behaviour (can be overridden through environment variables)
 # NOTE: more attempts and diagnostics improve debuggability whenever ComfyUI crashes mid-job.
 #   • WEBSOCKET_RECONNECT_ATTEMPTS sets how many times we will try to reconnect.
@@ -188,40 +196,97 @@ def validate_input(job_input):
     }, None
 
 
-def check_server(url, retries=500, delay=50):
+def _get_comfyui_pid():
+    """Read the ComfyUI process PID from the PID file written by start.sh."""
+    try:
+        with open(COMFY_PID_FILE, "r") as f:
+            return int(f.read().strip())
+    except (FileNotFoundError, ValueError):
+        return None
+
+
+def _is_comfyui_process_alive():
+    """Check whether the ComfyUI process is still running.
+
+    Returns True if alive, False if dead, None if PID file not found.
     """
-    Check if a server is reachable via HTTP GET request
+    pid = _get_comfyui_pid()
+    if pid is None:
+        return None
+    try:
+        os.kill(pid, 0)
+        return True
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True  # process exists but we can't signal it
+
+
+def check_server(url, retries=0, delay=50):
+    """
+    Check if a server is reachable via HTTP GET request.
+
+    When a PID file is available (written by start.sh), the function polls
+    indefinitely while the ComfyUI process is alive and fails immediately
+    when the process exits.  When no PID file is found it falls back to
+    the retry limit for backward compatibility.
 
     Args:
-    - url (str): The URL to check
-    - retries (int, optional): The number of times to attempt connecting to the server. Default is 50
-    - delay (int, optional): The time in milliseconds to wait between retries. Default is 500
+        url (str): The URL to check.
+        retries (int): Max attempts. 0 means unlimited (poll while process alive).
+        delay (int): Time in milliseconds between retries.
 
     Returns:
-    bool: True if the server is reachable within the given number of retries, otherwise False
+        bool: True if the server is reachable, False otherwise.
     """
-
     print(f"worker-comfyui - Checking API server at {url}...")
-    for i in range(retries):
+
+    # Guard against zero/negative delay to avoid division by zero
+    delay = max(1, delay)
+    # How often to print a "still waiting" log (every ~10 seconds)
+    log_every = max(1, int(10_000 / delay))
+    attempt = 0
+
+    while True:
+        # --- Check if ComfyUI process is still alive ---
+        process_status = _is_comfyui_process_alive()
+        if process_status is False:
+            print(
+                "worker-comfyui - ComfyUI process has exited. "
+                "Server will not become reachable."
+            )
+            return False
+
         try:
             response = requests.get(url, timeout=5)
-
-            # If the response status code is 200, the server is up and running
             if response.status_code == 200:
                 print(f"worker-comfyui - API is reachable")
                 return True
         except requests.Timeout:
             pass
-        except requests.RequestException as e:
+        except requests.RequestException:
             pass
 
-        # Wait for the specified delay before retrying
-        time.sleep(delay / 1000)
+        attempt += 1
 
-    print(
-        f"worker-comfyui - Failed to connect to server at {url} after {retries} attempts."
-    )
-    return False
+        # If we can't track the process, enforce a retry limit to avoid
+        # hanging forever when the PID file is never written
+        fallback = retries if retries > 0 else COMFY_API_FALLBACK_MAX_RETRIES
+        if process_status is None and attempt >= fallback:
+            print(
+                f"worker-comfyui - Failed to connect to server at {url} "
+                f"after {fallback} attempts (no PID file found)."
+            )
+            return False
+
+        if attempt % log_every == 0:
+            elapsed_s = (attempt * delay) / 1000
+            print(
+                f"worker-comfyui - Still waiting for API server... "
+                f"({elapsed_s:.0f}s elapsed, attempt {attempt})"
+            )
+
+        time.sleep(delay / 1000)
 
 
 def upload_images(images):
