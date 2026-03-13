@@ -179,6 +179,10 @@ To get the correct `workflow` JSON for the API:
 2.  In the top navigation, select `Workflow > Export (API)`
 3.  A `workflow.json` file will be downloaded. Use the content of this file as the value for the `input.workflow` field in your API requests.
 
+## SSH Access
+
+To enable SSH access to the worker, set the `PUBLIC_KEY` environment variable to your SSH public key. The worker will start an SSH server automatically. Make sure to expose **port 22** in your RunPod template so you can connect.
+
 ## Further Documentation
 
 - **[Deployment Guide](docs/deployment.md):** Detailed steps for deploying on RunPod.
