@@ -32,8 +32,10 @@ COMFY_API_AVAILABLE_INTERVAL_MS = int(
 )
 # Maximum number of API check attempts (0 = no limit, poll while ComfyUI process is alive)
 COMFY_API_AVAILABLE_MAX_RETRIES = int(
-    os.environ.get("COMFY_API_AVAILABLE_MAX_RETRIES", 500)
+    os.environ.get("COMFY_API_AVAILABLE_MAX_RETRIES", 0)
 )
+# Fallback retry limit when PID file is unavailable and retries=0
+COMFY_API_FALLBACK_MAX_RETRIES = 500
 # PID file written by start.sh so we can detect if ComfyUI has crashed
 COMFY_PID_FILE = "/tmp/comfyui.pid"
 # Websocket reconnection behaviour (can be overridden through environment variables)
@@ -267,11 +269,13 @@ def check_server(url, retries=0, delay=50):
 
         attempt += 1
 
-        # If we can't track the process, enforce the retry limit
-        if process_status is None and retries > 0 and attempt >= retries:
+        # If we can't track the process, enforce a retry limit to avoid
+        # hanging forever when the PID file is never written
+        fallback = retries if retries > 0 else COMFY_API_FALLBACK_MAX_RETRIES
+        if process_status is None and attempt >= fallback:
             print(
                 f"worker-comfyui - Failed to connect to server at {url} "
-                f"after {retries} attempts."
+                f"after {fallback} attempts (no PID file found)."
             )
             return False
 
