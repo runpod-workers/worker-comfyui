@@ -1,0 +1,12 @@
+{
+  "name": "worker-comfyui",
+  "version": "5.7.1",
+  "private": true,
+  "scripts": {
+    "changeset": "changeset",
+    "changeset:version": "changeset version && node scripts/update-readme-version.js"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.29.0"
+  }
+}
