@@ -32,7 +32,7 @@ COMFY_API_AVAILABLE_INTERVAL_MS = int(
 )
 # Maximum number of API check attempts (0 = no limit, poll while ComfyUI process is alive)
 COMFY_API_AVAILABLE_MAX_RETRIES = int(
-    os.environ.get("COMFY_API_AVAILABLE_MAX_RETRIES", 0)
+    os.environ.get("COMFY_API_AVAILABLE_MAX_RETRIES", 500)
 )
 # PID file written by start.sh so we can detect if ComfyUI has crashed
 COMFY_PID_FILE = "/tmp/comfyui.pid"
@@ -239,6 +239,8 @@ def check_server(url, retries=0, delay=50):
     """
     print(f"worker-comfyui - Checking API server at {url}...")
 
+    # Guard against zero/negative delay to avoid division by zero
+    delay = max(1, delay)
     # How often to print a "still waiting" log (every ~10 seconds)
     log_every = max(1, int(10_000 / delay))
     attempt = 0
