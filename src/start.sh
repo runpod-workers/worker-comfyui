@@ -29,7 +29,7 @@ export LD_PRELOAD="${TCMALLOC}"
 # so we fail fast with an actionable error message.
 # ---------------------------------------------------------------------------
 echo "worker-comfyui: Checking GPU availability..."
-GPU_CHECK=$(python -c "
+if ! GPU_CHECK=$(python3 -c "
 import torch
 try:
     torch.cuda.init()
@@ -38,9 +38,7 @@ try:
 except Exception as e:
     print(f'FAIL: {e}')
     exit(1)
-" 2>&1)
-
-if [ $? -ne 0 ]; then
+" 2>&1); then
     echo "worker-comfyui: GPU is not available. PyTorch CUDA init failed:"
     echo "worker-comfyui: $GPU_CHECK"
     echo "worker-comfyui: This usually means the GPU on this machine is not properly initialized."
