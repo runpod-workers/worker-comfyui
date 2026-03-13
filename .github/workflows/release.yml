@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "main"
+  workflow_dispatch:
 
 jobs:
   release:
@@ -43,7 +44,9 @@ jobs:
 
   docker:
     needs: release
-    if: needs.release.outputs.hasChangesets == 'false' && contains(github.event.head_commit.message, 'chore: version packages')
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (needs.release.outputs.hasChangesets == 'false' && contains(github.event.head_commit.message, 'chore: version packages'))
     runs-on: [blacksmith-8vcpu-ubuntu-2204, linux]
     permissions:
       contents: write
