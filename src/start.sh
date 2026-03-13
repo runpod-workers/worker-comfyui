@@ -3,7 +3,7 @@
 # Start SSH server if PUBLIC_KEY is set (enables remote access and dev-sync.sh)
 if [ -n "$PUBLIC_KEY" ]; then
     mkdir -p ~/.ssh
-    echo "$PUBLIC_KEY" >> ~/.ssh/authorized_keys
+    echo "$PUBLIC_KEY" > ~/.ssh/authorized_keys
     chmod 700 ~/.ssh
     chmod 600 ~/.ssh/authorized_keys
 
