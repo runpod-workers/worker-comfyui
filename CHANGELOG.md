@@ -1,5 +1,11 @@
 # [5.3.0](https://github.com/runpod-workers/worker-comfyui/compare/5.2.0...5.3.0) (2025-07-22)
 
+## 5.8.1
+
+### Patch Changes
+
+- 7960395: fix: add HuggingFace auth header to z-image-turbo model downloads
+
 ## 5.8.0
 
 ### Minor Changes
