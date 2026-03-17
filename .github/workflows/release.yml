@@ -15,6 +15,7 @@ jobs:
 
     outputs:
       hasChangesets: ${{ steps.changesets.outputs.hasChangesets }}
+      version: ${{ steps.version.outputs.version }}
 
     steps:
       - name: Checkout
@@ -42,6 +43,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Read version from package.json
+        id: version
+        if: >-
+          github.event_name == 'workflow_dispatch' ||
+          (steps.changesets.outputs.hasChangesets == 'false' && contains(github.event.head_commit.message, 'chore: version packages'))
+        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
   docker:
     needs: release
     if: >-
@@ -50,6 +58,19 @@ jobs:
     runs-on: [blacksmith-8vcpu-ubuntu-2204, linux]
     permissions:
       contents: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - base
+          - sdxl
+          - sd3
+          - flux1-schnell
+          - flux1-dev
+          - flux1-dev-fp8
+          - z-image-turbo
+          - base-cuda12-8-1
 
     steps:
       - name: Checkout
@@ -61,10 +82,6 @@ jobs:
           rm -rf /opt/ghc
           rm -rf "/usr/local/share/boost"
           rm -rf "$AGENT_TOOLSDIRECTORY"
-
-      - name: Read version from package.json
-        id: version
-        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -78,15 +95,26 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push the images to Docker Hub
+      - name: Build and push ${{ matrix.target }}
         uses: docker/bake-action@v2
         with:
+          targets: ${{ matrix.target }}
           push: true
           set: |
             *.args.DOCKERHUB_REPO=${{ vars.DOCKERHUB_REPO }}
             *.args.DOCKERHUB_IMG=${{ vars.DOCKERHUB_IMG }}
-            *.args.RELEASE_VERSION=${{ steps.version.outputs.version }}
+            *.args.RELEASE_VERSION=${{ needs.release.outputs.version }}
             *.args.HUGGINGFACE_ACCESS_TOKEN=${{ secrets.HUGGINGFACE_ACCESS_TOKEN }}
+
+  post-release:
+    needs: [release, docker]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Update description on Docker Hub
         uses: peter-evans/dockerhub-description@v3
@@ -98,4 +126,4 @@ jobs:
       - name: Create GitHub release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release create "${{ steps.version.outputs.version }}" --generate-notes
+        run: gh release create "${{ needs.release.outputs.version }}" --generate-notes
