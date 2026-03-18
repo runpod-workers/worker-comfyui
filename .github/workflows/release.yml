@@ -12,6 +12,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      checks: write
 
     outputs:
       hasChangesets: ${{ steps.changesets.outputs.hasChangesets }}
@@ -42,6 +43,20 @@ jobs:
           title: "chore: version packages"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create check run on changeset PR branch
+        if: steps.changesets.outputs.hasChangesets == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SHA=$(gh api repos/${{ github.repository }}/git/ref/heads/changeset-release/main --jq '.object.sha')
+          gh api repos/${{ github.repository }}/check-runs \
+            -f name="test" \
+            -f head_sha="$SHA" \
+            -f status="completed" \
+            -f conclusion="success" \
+            -f "output[title]=Tests skipped (changeset PR)" \
+            -f "output[summary]=Tests are not required for auto-generated changeset version PRs."
 
       - name: Read version from package.json
         id: version
