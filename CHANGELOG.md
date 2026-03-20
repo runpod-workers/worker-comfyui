@@ -1,5 +1,11 @@
 # [5.3.0](https://github.com/runpod-workers/worker-comfyui/compare/5.2.0...5.3.0) (2025-07-22)
 
+## 5.8.4
+
+### Patch Changes
+
+- 639d6bb: fix: pass RELEASE_VERSION as environment variable so docker-bake.hcl resolves versioned tags instead of defaulting to "latest"
+
 ## 5.8.3
 
 ### Patch Changes
