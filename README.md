@@ -36,6 +36,7 @@ This project allows you to run ComfyUI workflows as a serverless API endpoint on
 These images are available on Docker Hub under `runpod/worker-comfyui`:
 
 - **`runpod/worker-comfyui:<version>-base`**: Clean ComfyUI install with no models.
+- **`runpod/worker-comfyui:<version>-flux2-klein-9b`**: Includes GGUF model, text encoder, and VAE for [FLUX.2 klein 9B](https://huggingface.co/unsloth/FLUX.2-klein-9B-GGUF) (Q5_K_M GGUF).
 - **`runpod/worker-comfyui:<version>-flux1-schnell`**: Includes checkpoint, text encoders, and VAE for [FLUX.1 schnell](https://huggingface.co/black-forest-labs/FLUX.1-schnell).
 - **`runpod/worker-comfyui:<version>-flux1-dev`**: Includes checkpoint, text encoders, and VAE for [FLUX.1 dev](https://huggingface.co/black-forest-labs/FLUX.1-dev).
 - **`runpod/worker-comfyui:<version>-sdxl`**: Includes checkpoint and VAEs for [Stable Diffusion XL](https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0).

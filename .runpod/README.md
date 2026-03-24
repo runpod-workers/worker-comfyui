@@ -12,11 +12,11 @@ Run [ComfyUI](https://github.com/comfyanonymous/ComfyUI) workflows as a serverle
 
 ## What is included?
 
-This worker comes with the **FLUX.1-dev-fp8** (`flux1-dev-fp8.safetensors`) model pre-installed and **works only with this specific model** when deployed from the hub.
+This worker comes with the **FLUX.2 klein 9B** (`flux-2-klein-9b-Q5_K_M.gguf`) model pre-installed and **works only with this specific model** when deployed from the hub.
 
 ## Want to use a different model?
 
-**The hub deployment only supports FLUX.1-dev-fp8.** If you need any other model, custom nodes, or LoRAs, you have two options:
+**The hub deployment only supports FLUX.2 klein 9B (Q5_K_M GGUF).** If you need any other model, custom nodes, or LoRAs, you have two options:
 
 ### Option 1: ComfyUI-to-API (Easiest & Recommended)
 
@@ -60,20 +60,87 @@ This example uses a simplified workflow (replace with your actual workflow JSON)
 {
   "input": {
     "workflow": {
-      "6": {
+      "1": {
+        "inputs": {
+          "unet_name": "flux-2-klein-9b-Q5_K_M.gguf"
+        },
+        "class_type": "UnetLoaderGGUF",
+        "_meta": {
+          "title": "Load GGUF Model"
+        }
+      },
+      "2": {
+        "inputs": {
+          "clip_name": "qwen_3_8b_fp8mixed.safetensors",
+          "type": "flux2"
+        },
+        "class_type": "CLIPLoader",
+        "_meta": {
+          "title": "Load Text Encoder"
+        }
+      },
+      "3": {
+        "inputs": {
+          "vae_name": "flux2-vae.safetensors"
+        },
+        "class_type": "VAELoader",
+        "_meta": {
+          "title": "Load VAE"
+        }
+      },
+      "4": {
         "inputs": {
           "text": "anime cat with massive fluffy fennec ears and a big fluffy tail blonde messy long hair blue eyes wearing a construction outfit placing a fancy black forest cake with candles on top of a dinner table of an old dark Victorian mansion lit by candlelight with a bright window to the foggy forest and very expensive stuff everywhere there are paintings on the walls",
-          "clip": ["30", 1]
+          "clip": ["2", 0]
         },
         "class_type": "CLIPTextEncode",
         "_meta": {
           "title": "CLIP Text Encode (Positive Prompt)"
         }
       },
+      "5": {
+        "inputs": {
+          "text": "",
+          "clip": ["2", 0]
+        },
+        "class_type": "CLIPTextEncode",
+        "_meta": {
+          "title": "CLIP Text Encode (Negative Prompt)"
+        }
+      },
+      "6": {
+        "inputs": {
+          "width": 1024,
+          "height": 1024,
+          "batch_size": 1
+        },
+        "class_type": "EmptyLatentImage",
+        "_meta": {
+          "title": "Empty Latent Image"
+        }
+      },
+      "7": {
+        "inputs": {
+          "seed": 243057879077961,
+          "steps": 4,
+          "cfg": 1,
+          "sampler_name": "euler",
+          "scheduler": "simple",
+          "denoise": 1,
+          "model": ["1", 0],
+          "positive": ["4", 0],
+          "negative": ["5", 0],
+          "latent_image": ["6", 0]
+        },
+        "class_type": "KSampler",
+        "_meta": {
+          "title": "KSampler"
+        }
+      },
       "8": {
         "inputs": {
-          "samples": ["31", 0],
-          "vae": ["30", 2]
+          "samples": ["7", 0],
+          "vae": ["3", 0]
         },
         "class_type": "VAEDecode",
         "_meta": {
@@ -81,83 +148,6 @@ This example uses a simplified workflow (replace with your actual workflow JSON)
         }
       },
       "9": {
-        "inputs": {
-          "filename_prefix": "ComfyUI",
-          "images": ["8", 0]
-        },
-        "class_type": "SaveImage",
-        "_meta": {
-          "title": "Save Image"
-        }
-      },
-      "27": {
-        "inputs": {
-          "width": 512,
-          "height": 512,
-          "batch_size": 1
-        },
-        "class_type": "EmptySD3LatentImage",
-        "_meta": {
-          "title": "EmptySD3LatentImage"
-        }
-      },
-      "30": {
-        "inputs": {
-          "ckpt_name": "flux1-dev-fp8.safetensors"
-        },
-        "class_type": "CheckpointLoaderSimple",
-        "_meta": {
-          "title": "Load Checkpoint"
-        }
-      },
-      "31": {
-        "inputs": {
-          "seed": 243057879077961,
-          "steps": 10,
-          "cfg": 1,
-          "sampler_name": "euler",
-          "scheduler": "simple",
-          "denoise": 1,
-          "model": ["30", 0],
-          "positive": ["35", 0],
-          "negative": ["33", 0],
-          "latent_image": ["27", 0]
-        },
-        "class_type": "KSampler",
-        "_meta": {
-          "title": "KSampler"
-        }
-      },
-      "33": {
-        "inputs": {
-          "text": "",
-          "clip": ["30", 1]
-        },
-        "class_type": "CLIPTextEncode",
-        "_meta": {
-          "title": "CLIP Text Encode (Negative Prompt)"
-        }
-      },
-      "35": {
-        "inputs": {
-          "guidance": 3.5,
-          "conditioning": ["6", 0]
-        },
-        "class_type": "FluxGuidance",
-        "_meta": {
-          "title": "FluxGuidance"
-        }
-      },
-      "38": {
-        "inputs": {
-          "images": ["8", 0]
-        },
-        "class_type": "PreviewImage",
-        "_meta": {
-          "title": "Preview Image"
-        }
-      },
-      "40": {
         "inputs": {
           "filename_prefix": "ComfyUI",
           "images": ["8", 0]

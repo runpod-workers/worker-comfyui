@@ -85,6 +85,9 @@ RUN chmod +x /usr/local/bin/comfy-node-install
 # Prevent pip from asking for confirmation during uninstall steps in custom nodes
 ENV PIP_NO_INPUT=1
 
+# Install ComfyUI-GGUF for GGUF model format support
+RUN comfy-node-install comfyui-gguf
+
 # Copy helper script to switch Manager network mode at container start
 COPY scripts/comfy-manager-set-mode.sh /usr/local/bin/comfy-manager-set-mode
 RUN chmod +x /usr/local/bin/comfy-manager-set-mode
@@ -97,7 +100,7 @@ FROM base AS downloader
 
 ARG HUGGINGFACE_ACCESS_TOKEN
 # Set default model type if none is provided
-ARG MODEL_TYPE=flux1-dev-fp8
+ARG MODEL_TYPE=flux2-klein-9b
 
 # Change working directory to ComfyUI
 WORKDIR /comfyui
@@ -132,6 +135,12 @@ RUN if [ "$MODEL_TYPE" = "flux1-dev" ]; then \
 
 RUN if [ "$MODEL_TYPE" = "flux1-dev-fp8" ]; then \
       wget -q -O models/checkpoints/flux1-dev-fp8.safetensors https://huggingface.co/Comfy-Org/flux1-dev/resolve/main/flux1-dev-fp8.safetensors; \
+    fi
+
+RUN if [ "$MODEL_TYPE" = "flux2-klein-9b" ]; then \
+      wget -q -O models/unet/flux-2-klein-9b-Q5_K_M.gguf https://huggingface.co/unsloth/FLUX.2-klein-9B-GGUF/resolve/main/flux-2-klein-9b-Q5_K_M.gguf && \
+      wget -q --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/text_encoders/qwen_3_8b_fp8mixed.safetensors https://huggingface.co/Comfy-Org/flux2-klein-9B/resolve/main/split_files/text_encoders/qwen_3_8b_fp8mixed.safetensors && \
+      wget -q --header="Authorization: Bearer ${HUGGINGFACE_ACCESS_TOKEN}" -O models/vae/flux2-vae.safetensors https://huggingface.co/Comfy-Org/flux2-klein-9B/resolve/main/split_files/vae/flux2-vae.safetensors; \
     fi
 
 RUN if [ "$MODEL_TYPE" = "z-image-turbo" ]; then \
