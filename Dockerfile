@@ -108,7 +108,7 @@ RUN mkdir -p models/checkpoints models/vae models/unet models/clip models/text_e
 # Download checkpoints/vae/unet/clip models to include in image based on model type
 RUN if [ "$MODEL_TYPE" = "sdxl" ]; then \
       wget -q -O models/checkpoints/sd_xl_base_1.0.safetensors https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_base_1.0.safetensors && \
-      wget -q -O models/vae/sdxl_vae.safetensors https://huggingface.co/stabilityai/sdxl-vae/resolve/main/sdxl_vae.safetensors && \
+      wget -q -O models/vae/sdxl_vae.safetensors https://huggingface.co/stabilityai/sdxl/resolve/main/vae/sdxl_vae.safetensors && \
       wget -q -O models/vae/sdxl-vae-fp16-fix.safetensors https://huggingface.co/madebyollin/sdxl-vae-fp16-fix/resolve/main/sdxl_vae.safetensors; \
     fi
 
@@ -144,7 +144,7 @@ RUN if [ "$MODEL_TYPE" = "z-image-turbo" ]; then \
 # Product Photography model type - SDXL with IP-Adapter and ControlNet
 RUN if [ "$MODEL_TYPE" = "product-photo" ]; then \
       wget -q -O models/checkpoints/juggernautXL_v9.safetensors https://civitai.com/api/download/models/198246 && \
-      wget -q -O models/vae/sdxl_vae.safetensors https://huggingface.co/stabilityai/sdxl-vae/resolve/main/sd_xl_vae.safetensors && \
+      wget -q -O models/vae/sdxl_vae.safetensors https://huggingface.co/stabilityai/sdxl/resolve/main/vae/sdxl_vae.safetensors && \
       wget -q -O models/controlnet/control_v11f1p_sd15_depth.safetensors https://huggingface.co/lllyasviel/control_v11f1p_sd15_depth/resolve/main/diffusion_pytorch_model.safetensors && \
       wget -q -O models/controlnet/control_v11p_sd15_canny.safetensors https://huggingface.co/lllyasviel/control_v11p_sd15_canny/resolve/main/diffusion_pytorch_model.safetensors && \
       wget -q -O models/ipadapter/ip-adapter_sd15.safetensors https://huggingface.co/h94/IP-Adapter/resolve/main/models/ip-adapter_sd15.safetensors && \
