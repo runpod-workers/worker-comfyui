@@ -1,12 +1,12 @@
 {
   "title": "ComfyUI",
-  "description": "Generate images with ComfyUI using FLUX.1-dev (fp8)",
+  "description": "Generate images with ComfyUI using FLUX.2 klein 9B (Q5_K_M GGUF)",
   "type": "serverless",
   "category": "image",
   "iconUrl": "https://cpjrphpz3t5wbwfe.public.blob.vercel-storage.com/comfy-ui.png",
   "config": {
     "runsOn": "GPU",
-    "containerDiskInGb": 20,
+    "containerDiskInGb": 25,
     "gpuIds": "ADA_24",
     "gpuCount": 1,
     "allowedCudaVersions": ["12.7", "12.6"],
