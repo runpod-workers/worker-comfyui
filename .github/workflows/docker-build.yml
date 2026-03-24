@@ -1,0 +1,67 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=semver,pattern={{version}}
+          type=raw,value=product-photo,prefix=,suffix=
+
+    - name: Build and push (product-photo)
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:product-photo
+        build-args: |
+          MODEL_TYPE=product-photo
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        platforms: linux/amd64
+
+    - name: Build and push (sdxl)
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sdxl
+        build-args: |
+          MODEL_TYPE=sdxl
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        platforms: linux/amd64
