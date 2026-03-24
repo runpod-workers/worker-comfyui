@@ -89,6 +89,9 @@ ENV PIP_NO_INPUT=1
 COPY scripts/comfy-manager-set-mode.sh /usr/local/bin/comfy-manager-set-mode
 RUN chmod +x /usr/local/bin/comfy-manager-set-mode
 
+# Expose ComfyUI port for health checks
+EXPOSE 8188
+
 # Set the default command to run when starting the container
 CMD ["/start.sh"]
 
