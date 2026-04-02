@@ -1,0 +1,12 @@
+# Custom ComfyUI worker with video/animation nodes
+# No models included - uses network volume
+FROM runpod/worker-comfyui:5.5.0-base
+
+# Install custom nodes for video/frame processing workflows
+RUN comfy-node-install \
+    comfyui-kjnodes \
+    comfyui-videohelpersuite \
+    comfyui-frame-interpolation \
+    comfyui_essentials \
+    comfyui-gimm-vfi \
+    loadloramodelonlywithurl

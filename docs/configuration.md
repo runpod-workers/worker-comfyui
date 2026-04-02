@@ -21,6 +21,7 @@ This document outlines the environment variables available for configuring the `
 
 | Environment Variable           | Description                                                                                                            | Default |
 | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------- | ------- |
+| `WEBSOCKET_MESSAGE_TIMEOUT`    | Maximum seconds to wait for a single WebSocket message before checking ComfyUI health. Heavy workloads (e.g. video frame interpolation) can produce long silences on the socket. Set to `0` to disable (recv blocks indefinitely). | `600`   |
 | `WEBSOCKET_RECONNECT_ATTEMPTS` | Number of websocket reconnection attempts when connection drops during job execution.                                  | `5`     |
 | `WEBSOCKET_RECONNECT_DELAY_S`  | Delay in seconds between websocket reconnection attempts.                                                              | `3`     |
 | `WEBSOCKET_TRACE`              | Enable low-level websocket frame tracing for protocol debugging. Set to `true` only when diagnosing connection issues. | `false` |
