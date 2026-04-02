@@ -8,10 +8,5 @@ RUN comfy-node-install \
     comfyui-videohelpersuite \
     comfyui-frame-interpolation \
     comfyui_essentials \
-    comfyui-gimm-vfi
-
-# Install ComfyUI_LoadLoraModelOnlyWithUrl (not on Comfy Registry)
-RUN cd /comfyui/custom_nodes && \
-    git clone https://github.com/sourceful-official/ComfyUI_LoadLoraModelOnlyWithUrl.git && \
-    cd ComfyUI_LoadLoraModelOnlyWithUrl && \
-    if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    comfyui-gimm-vfi \
+    loadloramodelonlywithurl
