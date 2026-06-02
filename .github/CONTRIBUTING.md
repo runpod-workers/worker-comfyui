@@ -12,6 +12,18 @@ Fork the repository and create a new branch (feature/my-feature) Commit changes 
 "conventional-changelog" rules. Do not modify any versions manually. Don't build new versions. Use
 the PULL_REQUEST_TEMPLATE
 
+### Changesets
+
+Before merging a PR that affects the release (bug fixes, new features, breaking changes), run:
+
+```bash
+pnpm changeset
+```
+
+This will prompt you to select the type of change (patch, minor, or major) and write a summary.
+The generated changeset file should be committed along with your PR. When the PR is merged,
+changesets will automatically open a versioning PR and handle the release.
+
 ## Reporting issues
 
 Ensure any install or build dependencies are removed before the end of the layer when doing a build.
