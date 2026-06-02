@@ -98,7 +98,7 @@ If any of the above is true, ComfyUI will silently fail to discover models from 
 
 ### Tests and `runpod-volume` access
 
-RunPod’s test environment does **not** have access to the network volume mount: the `/runpod-volume` folder is not visible when tests run. When the endpoint starts for real, the volume is mounted and the folder appears. If tests fail or block deployment because of `Value not in list`, you can work around this by removing `.runpod/tests.json` so that the endpoint is deployed without running those tests.
+RunPod’s test environment does **not** have access to the network volume mount: the `/runpod-volume` folder is not visible when tests run. When the endpoint starts for real, the volume is mounted and the folder appears. The repository ships with the tests file renamed to `.runpod/tests_.json` so they don't run by default; if you've re-enabled them and they fail with `Value not in list`, remove or rename the file again so the endpoint is deployed without running those tests.
 
 ## Debugging with `NETWORK_VOLUME_DEBUG`
 
