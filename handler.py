@@ -26,6 +26,53 @@ from network_volume import (
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# ---------------------------------------------------------------------------
+# Optional host/GPU diagnostics. When REPORT_HOST_CUDA=true, every job result
+# includes a "host" block with the host's actual CUDA version (from nvidia-smi),
+# driver, GPU name, and the torch build CUDA. Used to validate which exact CUDA
+# version a worker landed on (the serverless API only exposes the min-cuda floor).
+# Cached after first call so it does not run per job.
+# ---------------------------------------------------------------------------
+_HOST_INFO_CACHE = None
+
+
+def _get_host_info():
+    global _HOST_INFO_CACHE
+    if _HOST_INFO_CACHE is not None:
+        return _HOST_INFO_CACHE
+    import subprocess
+
+    info = {}
+    try:
+        out = subprocess.run(
+            ["nvidia-smi", "--query-gpu=name,driver_version", "--format=csv,noheader"],
+            capture_output=True, text=True, timeout=15,
+        ).stdout.strip().splitlines()
+        if out:
+            name, driver = (out[0].split(",") + [""])[:2]
+            info["gpu"] = name.strip()
+            info["driver"] = driver.strip()
+        # nvidia-smi header reports the max CUDA version the driver supports
+        hdr = subprocess.run(["nvidia-smi"], capture_output=True, text=True, timeout=15).stdout
+        for line in hdr.splitlines():
+            if "CUDA Version" in line:
+                info["host_cuda"] = line.split("CUDA Version:")[1].split()[0].strip()
+                break
+    except Exception as exc:
+        info["nvidia_smi_error"] = str(exc)
+    try:
+        import torch
+
+        info["torch"] = torch.__version__
+        info["torch_cuda"] = torch.version.cuda
+        if torch.cuda.is_available():
+            cap = torch.cuda.get_device_capability(0)
+            info["sm"] = f"sm_{cap[0]}{cap[1]}"
+    except Exception as exc:
+        info["torch_error"] = str(exc)
+    _HOST_INFO_CACHE = info
+    return info
+
 # Time to wait between API check attempts in milliseconds
 COMFY_API_AVAILABLE_INTERVAL_MS = int(
     os.environ.get("COMFY_API_AVAILABLE_INTERVAL_MS", 50)
@@ -871,6 +918,9 @@ def handler(job):
             ws.close()
 
     final_result = {}
+
+    if os.environ.get("REPORT_HOST_CUDA", "false").lower() == "true":
+        final_result["host"] = _get_host_info()
 
     if output_data:
         final_result["images"] = output_data

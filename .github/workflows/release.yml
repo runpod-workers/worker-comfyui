@@ -85,7 +85,6 @@ jobs:
           - flux1-dev
           - flux1-dev-fp8
           - z-image-turbo
-          - base-cuda12-8-1
 
     steps:
       - name: Checkout

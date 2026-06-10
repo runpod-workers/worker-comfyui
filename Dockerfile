@@ -1,5 +1,6 @@
-# Build argument for base image selection
-ARG BASE_IMAGE=nvidia/cuda:12.6.3-cudnn-runtime-ubuntu24.04
+# Build argument for base image selection. Default: NVIDIA NGC PyTorch container
+# (Ubuntu 24.04 + tuned torch/cuDNN/NCCL incl. Blackwell sm_120 kernels).
+ARG BASE_IMAGE=nvcr.io/nvidia/pytorch:26.05-py3
 
 # Stage 1: Base image with common dependencies
 FROM ${BASE_IMAGE} AS base
@@ -9,6 +10,10 @@ ARG COMFYUI_VERSION=latest
 ARG CUDA_VERSION_FOR_COMFY
 ARG ENABLE_PYTORCH_UPGRADE=false
 ARG PYTORCH_INDEX_URL
+# When the base image already ships a tuned PyTorch (e.g. NGC nvcr.io/nvidia/pytorch),
+# keep "true" to reuse it instead of letting comfy-cli install its own wheel.
+# Set to "false" only when using a plain CUDA base that has no torch.
+ARG BASE_PROVIDES_TORCH=true
 
 # Prevents prompts from packages asking for user input during installation
 ENV DEBIAN_FRONTEND=noninteractive
@@ -38,11 +43,17 @@ RUN apt-get update && apt-get install -y \
 # Clean up to reduce image size
 RUN apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
-# Install uv (latest) using official installer and create isolated venv
+# Install uv (latest) using official installer and create the venv.
+# With BASE_PROVIDES_TORCH=true the venv inherits the base image's site-packages
+# (--system-site-packages) so NVIDIA's bundled torch/cuDNN/NCCL stay visible.
 RUN wget -qO- https://astral.sh/uv/install.sh | sh \
     && ln -s /root/.local/bin/uv /usr/local/bin/uv \
     && ln -s /root/.local/bin/uvx /usr/local/bin/uvx \
-    && uv venv /opt/venv
+    && if [ "$BASE_PROVIDES_TORCH" = "true" ]; then \
+         uv venv --system-site-packages --python /usr/bin/python3.12 /opt/venv; \
+       else \
+         uv venv /opt/venv; \
+       fi
 
 # Use the virtual environment for all subsequent commands
 ENV PATH="/opt/venv/bin:${PATH}"
@@ -51,7 +62,11 @@ ENV PATH="/opt/venv/bin:${PATH}"
 RUN uv pip install comfy-cli pip setuptools wheel
 
 # Install ComfyUI
-RUN if [ -n "${CUDA_VERSION_FOR_COMFY}" ]; then \
+# When the base image provides torch, skip comfy-cli's torch install so it does
+# not clobber the bundled wheel; otherwise install torch for the requested CUDA.
+RUN if [ "$BASE_PROVIDES_TORCH" = "true" ]; then \
+      /usr/bin/yes | comfy --workspace /comfyui install --version "${COMFYUI_VERSION}" --skip-torch-or-directml --nvidia; \
+    elif [ -n "${CUDA_VERSION_FOR_COMFY}" ]; then \
       /usr/bin/yes | comfy --workspace /comfyui install --version "${COMFYUI_VERSION}" --cuda-version "${CUDA_VERSION_FOR_COMFY}" --nvidia; \
     else \
       /usr/bin/yes | comfy --workspace /comfyui install --version "${COMFYUI_VERSION}" --nvidia; \
@@ -61,6 +76,30 @@ RUN if [ -n "${CUDA_VERSION_FOR_COMFY}" ]; then \
 RUN if [ "$ENABLE_PYTORCH_UPGRADE" = "true" ]; then \
       uv pip install --force-reinstall torch torchvision torchaudio --index-url ${PYTORCH_INDEX_URL}; \
     fi
+
+# comfy-cli installs ComfyUI into its OWN workspace venv (/comfyui/.venv), but
+# start.sh launches ComfyUI with /opt/venv's python. That mismatch means the
+# launch venv is missing ComfyUI's runtime deps (e.g. sqlalchemy, pulled in by
+# ComfyUI's asset DB), so ComfyUI crashes at startup and surfaces as the
+# misleading "ComfyUI server not reachable" error. Mirror ComfyUI's full
+# dependency set (core + custom nodes) into /opt/venv so the launch venv is
+# complete. This is the root-cause fix for DR-1170.
+RUN uv pip install -r /comfyui/requirements.txt \
+    && for r in /comfyui/custom_nodes/*/requirements.txt; do \
+         [ -f "$r" ] && uv pip install -r "$r" || true; \
+       done
+
+# Pin ComfyUI's unbounded ML dependencies to their last known-good majors.
+# ComfyUI requires transformers>=4.50.3 and huggingface-hub with NO upper bound,
+# so a fresh install pulls transformers 5.x + huggingface-hub 1.x whose breaking
+# API changes also break ComfyUI startup. Keep them on the last good major.
+RUN uv pip install "transformers>=4.50.3,<5" "huggingface-hub<1.0"
+
+# Build-time smoke test: actually start ComfyUI (imports the full node graph) so
+# a startup-breaking dependency is caught HERE, at build time, instead of as a
+# runtime "server not reachable" failure on a serverless worker. Runs on CPU —
+# no GPU is needed to exercise the import graph.
+RUN cd /comfyui && timeout 300 python main.py --quick-test-for-ci --cpu
 
 # Change working directory to ComfyUI
 WORKDIR /comfyui
