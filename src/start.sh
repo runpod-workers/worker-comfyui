@@ -34,15 +34,24 @@ import torch
 try:
     torch.cuda.init()
     name = torch.cuda.get_device_name(0)
-    print(f'OK: {name}')
+    cap = torch.cuda.get_device_capability(0)
+    # Launch a real kernel. The driver-only calls above succeed even when this
+    # PyTorch build has no compiled kernels for the GPU architecture (e.g. an
+    # older torch on a newer GPU). Without this, the worker boots, ComfyUI dies
+    # on the first GPU op, and it surfaces as the misleading 'server not
+    # reachable' error instead of a clear cause here.
+    _ = (torch.zeros(8, device='cuda') + 1).sum().item()
+    torch.cuda.synchronize()
+    print(f'OK: {name} (sm_{cap[0]}{cap[1]}), torch {torch.__version__}, cuda {torch.version.cuda}')
 except Exception as e:
     print(f'FAIL: {e}')
     exit(1)
 " 2>&1); then
-    echo "worker-comfyui: GPU is not available. PyTorch CUDA init failed:"
+    echo "worker-comfyui: GPU is not available or incompatible with this PyTorch build:"
     echo "worker-comfyui: $GPU_CHECK"
-    echo "worker-comfyui: This usually means the GPU on this machine is not properly initialized."
-    echo "worker-comfyui: Please contact RunPod support and report this machine."
+    echo "worker-comfyui: A 'no kernel image is available' error means this torch build"
+    echo "worker-comfyui: lacks kernels for this GPU. Otherwise the GPU may not be"
+    echo "worker-comfyui: properly initialized — please contact RunPod support."
     exit 1
 fi
 echo "worker-comfyui: GPU available — $GPU_CHECK"

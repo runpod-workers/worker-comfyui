@@ -62,6 +62,31 @@ RUN if [ "$ENABLE_PYTORCH_UPGRADE" = "true" ]; then \
       uv pip install --force-reinstall torch torchvision torchaudio --index-url ${PYTORCH_INDEX_URL}; \
     fi
 
+# comfy-cli installs ComfyUI into its own workspace venv (/comfyui/.venv), but
+# start.sh launches ComfyUI with /opt/venv's python. That mismatch leaves the
+# launch venv missing ComfyUI's runtime deps (e.g. sqlalchemy, pulled in by
+# ComfyUI's asset DB), so ComfyUI crashes at startup and surfaces as the
+# misleading "ComfyUI server (127.0.0.1:8188) not reachable" error. Mirror
+# ComfyUI's full dependency set (core + custom nodes) into /opt/venv so the
+# launch venv is complete. Root-cause fix for DR-1170.
+RUN uv pip install -r /comfyui/requirements.txt \
+    && for r in /comfyui/custom_nodes/*/requirements.txt; do \
+         [ -f "$r" ] && uv pip install -r "$r" || true; \
+       done
+
+# Pin ComfyUI's unbounded ML dependencies to their last known-good majors.
+# ComfyUI declares transformers>=4.50.3 and huggingface-hub with NO upper bound,
+# so a fresh install can pull transformers 5.x / huggingface-hub 1.x whose
+# breaking API changes also crash ComfyUI at startup. Keep them on the last
+# known-good major.
+RUN uv pip install "transformers>=4.50.3,<5" "huggingface-hub<1.0"
+
+# Build-time smoke test: actually start ComfyUI (imports the full node graph) so
+# a startup-breaking dependency is caught HERE, at build time, instead of as a
+# runtime "server not reachable" failure on a live worker. Runs on CPU — no GPU
+# needed to exercise the import graph.
+RUN cd /comfyui && timeout 300 python main.py --quick-test-for-ci --cpu
+
 # Change working directory to ComfyUI
 WORKDIR /comfyui
 
