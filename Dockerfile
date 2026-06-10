@@ -69,17 +69,18 @@ RUN if [ "$ENABLE_PYTORCH_UPGRADE" = "true" ]; then \
 # misleading "ComfyUI server (127.0.0.1:8188) not reachable" error. Mirror
 # ComfyUI's full dependency set (core + custom nodes) into /opt/venv so the
 # launch venv is complete. Root-cause fix for DR-1170.
+#
+# The transformers/huggingface-hub pin is part of the SAME step on purpose:
+# ComfyUI declares transformers>=4.50.3 and huggingface-hub with NO upper bound,
+# so a fresh install can pull transformers 5.x / huggingface-hub 1.x whose
+# breaking API changes also crash ComfyUI at startup. Pinning them in the same
+# RUN downgrades within one layer, so the unwanted versions aren't left behind
+# bloating the image.
 RUN uv pip install -r /comfyui/requirements.txt \
     && for r in /comfyui/custom_nodes/*/requirements.txt; do \
          [ -f "$r" ] && uv pip install -r "$r" || true; \
-       done
-
-# Pin ComfyUI's unbounded ML dependencies to their last known-good majors.
-# ComfyUI declares transformers>=4.50.3 and huggingface-hub with NO upper bound,
-# so a fresh install can pull transformers 5.x / huggingface-hub 1.x whose
-# breaking API changes also crash ComfyUI at startup. Keep them on the last
-# known-good major.
-RUN uv pip install "transformers>=4.50.3,<5" "huggingface-hub<1.0"
+       done \
+    && uv pip install "transformers>=4.50.3,<5" "huggingface-hub<1.0"
 
 # Build-time smoke test: actually start ComfyUI (imports the full node graph) so
 # a startup-breaking dependency is caught HERE, at build time, instead of as a
