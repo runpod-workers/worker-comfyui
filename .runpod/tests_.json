@@ -131,6 +131,6 @@
         "value": "false"
       }
     ],
-    "allowedCudaVersions": ["12.7", "12.6"]
+    "allowedCudaVersions": ["13.0", "12.9", "12.8", "12.7", "12.6"]
   }
 }

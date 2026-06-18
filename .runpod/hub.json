@@ -9,7 +9,7 @@
     "containerDiskInGb": 20,
     "gpuIds": "ADA_24",
     "gpuCount": 1,
-    "allowedCudaVersions": ["12.7", "12.6"],
+    "allowedCudaVersions": ["13.0", "12.9", "12.8", "12.7", "12.6"],
     "env": [
       {
         "key": "COMFY_ORG_API_KEY",
@@ -67,7 +67,7 @@
           "name": "ComfyUI Log Level",
           "type": "string",
           "description": "Log level for ComfyUI (DEBUG, INFO, WARNING, ERROR, CRITICAL)",
-          "default": "DEBUG",
+          "default": "INFO",
           "advanced": true
         }
       },
