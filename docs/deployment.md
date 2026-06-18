@@ -41,6 +41,7 @@ This is the simplest method if the official images meet your needs.
 
 | Model                     | Image Tag Suffix | Minimum VRAM Required | Recommended Container Size |
 | ------------------------- | ---------------- | --------------------- | -------------------------- |
+| FLUX.2 klein 9B (GGUF)    | `flux2-klein-9b` | 16 GB                 | 25 GB                      |
 | Stable Diffusion XL       | `sdxl`           | 8 GB                  | 15 GB                      |
 | Stable Diffusion 3 Medium | `sd3`            | 5 GB                  | 20 GB                      |
 | FLUX.1 Schnell            | `flux1-schnell`  | 24 GB                 | 30 GB                      |

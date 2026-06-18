@@ -84,6 +84,7 @@ jobs:
           - flux1-schnell
           - flux1-dev
           - flux1-dev-fp8
+          - flux2-klein-9b
           - z-image-turbo
           - base-cuda12-8-1
 
