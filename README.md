@@ -6,7 +6,7 @@
   <img src="assets/worker_sitting_in_comfy_chair.jpg" title="Worker sitting in comfy chair" />
 </p>
 
-[![RunPod](https://api.runpod.io/badge/runpod-workers/worker-comfyui)](https://www.runpod.io/console/hub/runpod-workers/worker-comfyui)
+[![RunPod](https://api.runpod.io/badge/runpod-workers/worker-comfyui)](https://console.runpod.io/hub/runpod-workers/worker-comfyui)
 
 ---
 
@@ -152,8 +152,8 @@ Each object in the `output.images` array has the following structure:
 
 To interact with your deployed RunPod endpoint:
 
-1.  **Get API Key:** Generate a key in RunPod [User Settings](https://www.runpod.io/console/serverless/user/settings) (`API Keys` section).
-2.  **Get Endpoint ID:** Find your endpoint ID on the [Serverless Endpoints](https://www.runpod.io/console/serverless/user/endpoints) page or on the `Overview` page of your endpoint.
+1.  **Get API Key:** Generate a key in RunPod [User Settings](https://console.runpod.io/serverless/user/settings) (`API Keys` section).
+2.  **Get Endpoint ID:** Find your endpoint ID on the [Serverless Endpoints](https://console.runpod.io/serverless) page or on the `Overview` page of your endpoint.
 
 ### Generate Image (Sync Example)
 
