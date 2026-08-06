@@ -569,6 +569,65 @@ def get_image_data(filename, subfolder, image_type):
         return None
 
 
+def _build_progress_payload(message, prompt_id):
+    """Translate a ComfyUI 'progress' or 'progress_state' websocket message
+    into {type, value, max, percent, node}; return None to skip."""
+    if not isinstance(message, dict):
+        return None
+    msg_type = message.get("type")
+    data = message.get("data") or {}
+
+    if msg_type == "progress":
+        if data.get("prompt_id") not in (None, prompt_id):
+            return None
+        try:
+            value = float(data.get("value", 0))
+            max_value = float(data.get("max", 0))
+        except (TypeError, ValueError):
+            return None
+        if max_value <= 0:
+            return None
+        return {
+            "type": "progress",
+            "value": int(value),
+            "max": int(max_value),
+            "percent": round((value / max_value) * 100.0, 2),
+            "node": data.get("node"),
+        }
+
+    if msg_type == "progress_state":
+        if data.get("prompt_id") not in (None, prompt_id):
+            return None
+        nodes = data.get("nodes") or {}
+        if not isinstance(nodes, dict) or not nodes:
+            return None
+        total_value = 0.0
+        total_max = 0.0
+        for node in nodes.values():
+            if not isinstance(node, dict):
+                continue
+            try:
+                node_max = float(node.get("max", 0))
+                node_value = float(node.get("value", 0))
+            except (TypeError, ValueError):
+                continue
+            if node_max <= 0:
+                continue
+            total_value += node_value
+            total_max += node_max
+        if total_max <= 0:
+            return None
+        return {
+            "type": "progress",
+            "value": int(total_value),
+            "max": int(total_max),
+            "percent": round((total_value / total_max) * 100.0, 2),
+            "node": None,
+        }
+
+    return None
+
+
 def handler(job):
     """
     Handles a job using ComfyUI via websockets for status and image retrieval.
@@ -689,6 +748,15 @@ def handler(job):
                             )
                             errors.append(f"Workflow execution error: {error_details}")
                             break
+                    elif message.get("type") in ("progress", "progress_state"):
+                        payload = _build_progress_payload(message, prompt_id)
+                        if payload is not None:
+                            try:
+                                runpod.serverless.progress_update(job, payload)
+                            except Exception as progress_err:
+                                print(
+                                    f"worker-comfyui - progress_update failed (non-fatal): {progress_err}"
+                                )
                 else:
                     continue
             except websocket.WebSocketTimeoutException:
