@@ -109,8 +109,11 @@ ADD src/extra_model_paths.yaml ./
 # Go back to the root
 WORKDIR /
 
-# Install Python runtime dependencies for the handler
-RUN uv pip install runpod requests websocket-client
+# Install Python runtime dependencies for the handler.
+# Pin boto3 < 1.40 to keep S3 uploads working against non-AWS S3 endpoints
+# (Cloudflare R2, Google Cloud Storage). boto3 1.40+ ships a botocore that
+# enforces stricter AWS-only auth flows; see issue #156.
+RUN uv pip install runpod requests websocket-client 'boto3<1.40'
 
 # Add application code and scripts
 ADD src/start.sh src/network_volume.py handler.py test_input.json ./
