@@ -789,7 +789,17 @@ def handler(job):
                                 )
 
                                 print(f"worker-comfyui - Uploading {filename} to S3...")
-                                s3_url = rp_upload.upload_image(job_id, temp_file_path)
+                                # Use BUCKET_PREFIX if set, otherwise use original upload_image for backward compatibility
+                                bucket_prefix = os.environ.get("BUCKET_PREFIX", "").strip("/")
+                                if bucket_prefix:
+                                    s3_prefix = f"{bucket_prefix}/{job_id}"
+                                    s3_url = rp_upload.upload_file_to_bucket(
+                                        file_name=filename,
+                                        file_location=temp_file_path,
+                                        prefix=s3_prefix,
+                                    )
+                                else:
+                                    s3_url = rp_upload.upload_image(job_id, temp_file_path)
                                 os.remove(temp_file_path)  # Clean up temp file
                                 print(
                                     f"worker-comfyui - Uploaded {filename} to S3: {s3_url}"

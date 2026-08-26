@@ -39,8 +39,9 @@ Configure these variables **only** if you want the worker to upload generated im
 | `BUCKET_ENDPOINT_URL`      | The full endpoint URL of your S3 bucket. **Must be set to enable S3 upload.**                                                           | `https://<your-bucket-name>.s3.<aws-region>.amazonaws.com` |
 | `BUCKET_ACCESS_KEY_ID`     | Your AWS access key ID associated with the IAM user that has write permissions to the bucket. Required if `BUCKET_ENDPOINT_URL` is set. | `AKIAIOSFODNN7EXAMPLE`                                     |
 | `BUCKET_SECRET_ACCESS_KEY` | Your AWS secret access key associated with the IAM user. Required if `BUCKET_ENDPOINT_URL` is set.                                      | `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY`                 |
+| `BUCKET_PREFIX`            | Optional prefix (folder path) to prepend to uploaded files in the bucket. Leading/trailing slashes are automatically stripped.          | `outputs/comfyui`                                          |
 
-**Note:** Upload uses the `runpod` Python library helper `rp_upload.upload_image`, which handles creating a unique path within the bucket based on the `job_id`.
+**Note:** When `BUCKET_PREFIX` is not set, upload uses `rp_upload.upload_image` for backward compatibility (files are stored as `{job_id}/{random_uuid}.{ext}`). When `BUCKET_PREFIX` is set, upload uses `rp_upload.upload_file_to_bucket` which preserves the original filename (files are stored as `{prefix}/{job_id}/{original_filename}`).
 
 ### Example S3 Response
 
@@ -66,4 +67,4 @@ If the S3 environment variables (`BUCKET_ENDPOINT_URL`, `BUCKET_ACCESS_KEY_ID`, 
 }
 ```
 
-The `data` field contains the presigned URL to the uploaded image file in your S3 bucket. The path usually includes the job ID.
+The `data` field contains the presigned URL to the uploaded image file in your S3 bucket. The path includes the job ID, and optionally the `BUCKET_PREFIX` if configured. For example, with `BUCKET_PREFIX=outputs/comfyui`, the path would be `outputs/comfyui/sync-uuid-string/ComfyUI_00001_.png`.
