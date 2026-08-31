@@ -43,6 +43,13 @@ These images are available on Docker Hub under `runpod/worker-comfyui`:
 
 Replace `<version>` with the current release tag, check the [releases page](https://github.com/runpod-workers/worker-comfyui/releases) for the latest version.
 
+## Loading custom models to Docker images
+
+* Rebuild Docker image: download models (including checkpoints, lora, and other data items) in [Dockerfile](./Dockerfile).
+* Network volume: pre-load models into RunPod network volume, and attach to serverless or pod (note they have different mount point).
+  * To pre-load models, mount network volume to a pod, and then download all models to the mounted position, verify that everything works.
+  * And then use the updated network volume to a new place.
+
 ## API Specification
 
 The worker exposes standard RunPod serverless endpoints (`/run`, `/runsync`, `/health`). By default, images are returned as base64 strings. You can configure the worker to upload images to an S3 bucket instead by setting specific environment variables (see [Configuration Guide](docs/configuration.md)).
