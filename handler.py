@@ -417,8 +417,16 @@ def queue_workflow(workflow, client_id, comfy_org_api_key=None):
     Raises:
         ValueError: If the workflow validation fails with detailed error information
     """
-    # Include client_id in the prompt payload
-    payload = {"prompt": workflow, "client_id": client_id}
+    # Include client_id in the prompt payload.
+    # extra_pnginfo.workflow is what ComfyUI embeds into generated PNGs so users
+    # can drag a result back into the editor and recover the workflow. Without
+    # it, even with metadata enabled, the PNG only carries the API-format
+    # `prompt` and is not directly loadable in the UI.
+    payload = {
+        "prompt": workflow,
+        "client_id": client_id,
+        "extra_data": {"extra_pnginfo": {"workflow": workflow}},
+    }
 
     # Optionally inject Comfy.org API key for API Nodes.
     # Precedence: per-request key (argument) overrides environment variable.
@@ -427,7 +435,7 @@ def queue_workflow(workflow, client_id, comfy_org_api_key=None):
     key_from_env = os.environ.get("COMFY_ORG_API_KEY")
     effective_key = comfy_org_api_key if comfy_org_api_key else key_from_env
     if effective_key:
-        payload["extra_data"] = {"api_key_comfy_org": effective_key}
+        payload["extra_data"]["api_key_comfy_org"] = effective_key
     data = json.dumps(payload).encode("utf-8")
 
     # Use requests for consistency and timeout
