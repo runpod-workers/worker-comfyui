@@ -6,7 +6,7 @@
   "iconUrl": "https://cpjrphpz3t5wbwfe.public.blob.vercel-storage.com/comfy-ui.png",
   "config": {
     "runsOn": "GPU",
-    "containerDiskInGb": 20,
+    "containerDiskInGb": 40,
     "gpuIds": "ADA_24",
     "gpuCount": 1,
     "allowedCudaVersions": ["12.8", "12.9", "13.0", "13.1", "13.2"],

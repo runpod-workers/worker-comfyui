@@ -20,6 +20,14 @@ from network_volume import (
     run_network_volume_diagnostics,
 )
 
+import builtins
+
+VERBOSE = os.environ.get("WORKER_VERBOSE", "false").lower() == "true"
+
+def print(*args, **kwargs):
+    if VERBOSE:
+        builtins.print(*args, **kwargs)
+
 # ---------------------------------------------------------------------------
 # Logging setup
 # ---------------------------------------------------------------------------
@@ -438,10 +446,9 @@ def queue_workflow(workflow, client_id, comfy_org_api_key=None):
 
     # Handle validation errors with detailed information
     if response.status_code == 400:
-        print(f"worker-comfyui - ComfyUI returned 400. Response body: {response.text}")
+        print(f"worker-comfyui - ComfyUI returned 400 ({len(response.text)} bytes)")
         try:
             error_data = response.json()
-            print(f"worker-comfyui - Parsed error data: {error_data}")
 
             # Try to extract meaningful error information
             error_message = "Workflow validation failed"
