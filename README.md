@@ -1,16 +1,16 @@
 # worker-comfyui
 
-> [ComfyUI](https://github.com/comfyanonymous/ComfyUI) as a serverless API on [RunPod](https://www.runpod.io/)
+> [ComfyUI](https://github.com/comfyanonymous/ComfyUI) as a serverless API on [Runpod](https://www.runpod.io/)
 
 <p align="center">
   <img src="assets/worker_sitting_in_comfy_chair.jpg" title="Worker sitting in comfy chair" />
 </p>
 
-[![RunPod](https://api.runpod.io/badge/runpod-workers/worker-comfyui)](https://www.runpod.io/console/hub/runpod-workers/worker-comfyui)
+[![Runpod](https://api.runpod.io/badge/runpod-workers/worker-comfyui)](https://console.runpod.io/hub/runpod-workers/worker-comfyui)
 
 ---
 
-This project allows you to run ComfyUI workflows as a serverless API endpoint on the RunPod platform. Submit workflows via API calls and receive generated images as base64 strings or S3 URLs.
+This project allows you to run ComfyUI workflows as a serverless API endpoint on the Runpod platform. Submit workflows via API calls and receive generated images as base64 strings or S3 URLs.
 
 ## Table of Contents
 
@@ -26,7 +26,7 @@ This project allows you to run ComfyUI workflows as a serverless API endpoint on
 ## Quickstart
 
 1.  🐳 Choose one of the [available Docker images](#available-docker-images) for your serverless endpoint (e.g., `runpod/worker-comfyui:<version>-sd3`).
-2.  📄 Follow the [Deployment Guide](docs/deployment.md) to set up your RunPod template and endpoint.
+2.  📄 Follow the [Deployment Guide](docs/deployment.md) to set up your Runpod template and endpoint.
 3.  ⚙️ Optionally configure the worker (e.g., for S3 upload) using environment variables - see the full [Configuration Guide](docs/configuration.md).
 4.  🧪 Pick an example workflow from [`test_resources/workflows/`](./test_resources/workflows/) or [get your own](#getting-the-workflow-json).
 5.  🚀 Follow the [Usage](#usage) steps below to interact with your deployed endpoint.
@@ -45,7 +45,7 @@ Replace `<version>` with the current release tag, check the [releases page](http
 
 ## API Specification
 
-The worker exposes standard RunPod serverless endpoints (`/run`, `/runsync`, `/health`). By default, images are returned as base64 strings. You can configure the worker to upload images to an S3 bucket instead by setting specific environment variables (see [Configuration Guide](docs/configuration.md)).
+The worker exposes standard Runpod serverless endpoints (`/run`, `/runsync`, `/health`). By default, images are returned as base64 strings. You can configure the worker to upload images to an S3 bucket instead by setting specific environment variables (see [Configuration Guide](docs/configuration.md)).
 
 Use the `/runsync` endpoint for synchronous requests that wait for the job to complete and return the result directly. Use the `/run` endpoint for asynchronous requests that return immediately with a job ID; you'll need to poll the `/status` endpoint separately to get the result.
 
@@ -96,7 +96,7 @@ Each object within the `input.images` array must contain:
 
 > [!NOTE]
 >
-> **Size Limits:** RunPod endpoints have request size limits (e.g., 10MB for `/run`, 20MB for `/runsync`). Large base64 input images can exceed these limits. See [RunPod Docs](https://docs.runpod.io/docs/serverless-endpoint-urls).
+> **Size Limits:** Runpod endpoints have request size limits (e.g., 10MB for `/run`, 20MB for `/runsync`). Large base64 input images can exceed these limits. See [Runpod Docs](https://docs.runpod.io/docs/serverless-endpoint-urls).
 
 ### Output
 
@@ -150,10 +150,10 @@ Each object in the `output.images` array has the following structure:
 
 ## Usage
 
-To interact with your deployed RunPod endpoint:
+To interact with your deployed Runpod endpoint:
 
-1.  **Get API Key:** Generate a key in RunPod [User Settings](https://www.runpod.io/console/serverless/user/settings) (`API Keys` section).
-2.  **Get Endpoint ID:** Find your endpoint ID on the [Serverless Endpoints](https://www.runpod.io/console/serverless/user/endpoints) page or on the `Overview` page of your endpoint.
+1.  **Get API Key:** Generate a key in Runpod [User Settings](https://console.runpod.io/serverless/user/settings) (`API Keys` section).
+2.  **Get Endpoint ID:** Find your endpoint ID on the [Serverless Endpoints](https://console.runpod.io/serverless) page or on the `Overview` page of your endpoint.
 
 ### Generate Image (Sync Example)
 
@@ -181,11 +181,11 @@ To get the correct `workflow` JSON for the API:
 
 ## SSH Access
 
-To enable SSH access to the worker, set the `PUBLIC_KEY` environment variable to your SSH public key. The worker will start an SSH server automatically. Make sure to expose **port 22** in your RunPod template so you can connect.
+To enable SSH access to the worker, set the `PUBLIC_KEY` environment variable to your SSH public key. The worker will start an SSH server automatically. Make sure to expose **port 22** in your Runpod template so you can connect.
 
 ## Further Documentation
 
-- **[Deployment Guide](docs/deployment.md):** Detailed steps for deploying on RunPod.
+- **[Deployment Guide](docs/deployment.md):** Detailed steps for deploying on Runpod.
 - **[Configuration Guide](docs/configuration.md):** Full list of environment variables (including S3 setup).
 - **[Customization Guide](docs/customization.md):** Adding custom models and nodes (Network Volumes, Docker builds).
 - **[Development Guide](docs/development.md):** Setting up a local environment for development & testing
