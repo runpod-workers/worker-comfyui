@@ -10,3 +10,7 @@ runpod_worker_comfy:
   upscale_models: models/upscale_models/
   vae: models/vae/
   unet: models/unet/
+  diffusion_models: models/diffusion_models/
+  audio_encoders: models/audio_encoders/
+  text_encoders: models/text_encoders/
+  loras: models/loras/
