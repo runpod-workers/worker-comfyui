@@ -4,6 +4,10 @@ import sys
 import os
 import json
 import base64
+from pathlib import Path
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+import threading
+from urllib.parse import parse_qs, urlparse
 
 # handler.py lives at the repository root; it imports network_volume as a
 # sibling module (both are ADDed to / in the Docker image), which lives in
@@ -420,8 +424,195 @@ class TestHandlerPreflightOrdering(unittest.TestCase):
         result = handler.handler(job)
 
         self.assertNotIn("error", result)
+        self.assertEqual(result, {"status": "success_no_images", "images": []})
         mock_queue.assert_called_once()
         self.assertEqual(mock_queue.call_args[0][0], workflow)
+
+
+class TestHandlerVideoOutputs(unittest.TestCase):
+    def _run_handler(self, node_output, use_s3=False, bucket_prefix=""):
+        uploaded_files = []
+        view_requests = []
+
+        class ViewRequestHandler(BaseHTTPRequestHandler):
+            def do_GET(self):
+                query = parse_qs(urlparse(self.path).query, keep_blank_values=True)
+                view_requests.append(query)
+                body = f"{query['filename'][0]} bytes".encode()
+                self.send_response(200)
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+
+            def log_message(self, _format, *_args):
+                pass
+
+        view_server = ThreadingHTTPServer(("127.0.0.1", 0), ViewRequestHandler)
+        view_thread = threading.Thread(target=view_server.serve_forever, daemon=True)
+
+        def upload_file(file_name, file_location, prefix, extra_args):
+            uploaded_files.append(
+                (
+                    file_name,
+                    file_location,
+                    Path(file_location).read_bytes(),
+                    prefix,
+                    extra_args,
+                )
+            )
+            return "https://bucket.example/video"
+
+        bucket_endpoint = "https://s3.example" if use_s3 else ""
+        with patch.dict(
+            os.environ,
+            {
+                "BUCKET_ENDPOINT_URL": bucket_endpoint,
+                "BUCKET_PREFIX": bucket_prefix,
+            },
+        ):
+            with (
+                patch.object(
+                    handler, "COMFY_HOST", f"127.0.0.1:{view_server.server_port}"
+                ),
+                patch("handler.validate_workflow_models", return_value=None),
+                patch("handler.check_server", return_value=True),
+                patch("handler.queue_workflow", return_value={"prompt_id": "abc"}),
+                patch("handler.websocket.WebSocket") as mock_ws_class,
+                patch(
+                    "handler.get_history",
+                    return_value={"abc": {"outputs": {"9": node_output}}},
+                ),
+                patch(
+                    "handler.rp_upload.upload_file_to_bucket", side_effect=upload_file
+                ) as mock_upload,
+            ):
+                mock_ws = MagicMock()
+                mock_ws.recv.return_value = json.dumps(
+                    {"type": "executing", "data": {"node": None, "prompt_id": "abc"}}
+                )
+                mock_ws_class.return_value = mock_ws
+
+                job = {
+                    "id": "job-video",
+                    "input": {"workflow": {"1": {"class_type": "KSampler", "inputs": {}}}},
+                }
+                view_thread.start()
+                try:
+                    result = handler.handler(job)
+                finally:
+                    view_server.shutdown()
+                    view_server.server_close()
+                    view_thread.join()
+
+        return result, mock_upload, uploaded_files, view_requests
+
+    def test_returns_videohelper_and_native_video_outputs_as_base64(self):
+        node_output = {
+            "images": [
+                {"filename": "still.png", "subfolder": "", "type": "output"},
+                {"filename": "native.mp4", "subfolder": "", "type": "output"},
+            ],
+            "gifs": [
+                {"filename": "clip.mp4", "subfolder": "renders", "type": "output"}
+            ],
+            "videos": [
+                {"filename": "clip.webm", "subfolder": "", "type": "output"}
+            ],
+        }
+
+        result, mock_upload, _, view_requests = self._run_handler(node_output)
+
+        self.assertEqual(
+            result["images"],
+            [
+                {
+                    "filename": "still.png",
+                    "type": "base64",
+                    "data": base64.b64encode(b"still.png bytes").decode("utf-8"),
+                }
+            ],
+        )
+        self.assertEqual(
+            result["videos"],
+            [
+                {
+                    "filename": "clip.mp4",
+                    "type": "base64",
+                    "data": base64.b64encode(b"clip.mp4 bytes").decode("utf-8"),
+                },
+                {
+                    "filename": "clip.webm",
+                    "type": "base64",
+                    "data": base64.b64encode(b"clip.webm bytes").decode("utf-8"),
+                },
+                {
+                    "filename": "native.mp4",
+                    "type": "base64",
+                    "data": base64.b64encode(b"native.mp4 bytes").decode("utf-8"),
+                },
+            ],
+        )
+        self.assertIn(
+            {"filename": ["clip.mp4"], "subfolder": ["renders"], "type": ["output"]},
+            view_requests,
+        )
+        self.assertIn(
+            {"filename": ["clip.webm"], "subfolder": [""], "type": ["output"]},
+            view_requests,
+        )
+        self.assertIn(
+            {"filename": ["native.mp4"], "subfolder": [""], "type": ["output"]},
+            view_requests,
+        )
+        mock_upload.assert_not_called()
+
+    def test_uploads_video_to_s3_and_cleans_temporary_file(self):
+        node_output = {
+            "videos": [
+                {"filename": "clip.mp4", "subfolder": "renders", "type": "output"}
+            ]
+        }
+
+        result, mock_upload, uploaded_files, view_requests = self._run_handler(
+            node_output, use_s3=True
+        )
+
+        self.assertEqual(
+            result,
+            {
+                "images": [],
+                "videos": [
+                    {
+                        "filename": "clip.mp4",
+                        "type": "s3_url",
+                        "data": "https://bucket.example/video",
+                    }
+                ],
+            },
+        )
+        mock_upload.assert_called_once()
+        self.assertTrue(uploaded_files[0][0].endswith(".mp4"))
+        self.assertEqual(uploaded_files[0][2], b"clip.mp4 bytes")
+        self.assertEqual(uploaded_files[0][3], "job-video")
+        self.assertEqual(uploaded_files[0][4], {"ContentType": "video/mp4"})
+        self.assertFalse(os.path.exists(uploaded_files[0][1]))
+        self.assertIn(
+            {"filename": ["clip.mp4"], "subfolder": ["renders"], "type": ["output"]},
+            view_requests,
+        )
+
+    def test_uses_bucket_prefix_for_video_uploads(self):
+        node_output = {
+            "videos": [
+                {"filename": "clip.mp4", "subfolder": "renders", "type": "output"}
+            ]
+        }
+
+        _, _, uploaded_files, _ = self._run_handler(
+            node_output, use_s3=True, bucket_prefix="/outputs/comfyui/"
+        )
+
+        self.assertEqual(uploaded_files[0][3], "outputs/comfyui/job-video")
 
 
 if __name__ == "__main__":
