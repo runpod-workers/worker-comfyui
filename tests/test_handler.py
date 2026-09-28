@@ -509,7 +509,8 @@ class TestHandlerVideoOutputs(unittest.TestCase):
     def test_returns_videohelper_and_native_video_outputs_as_base64(self):
         node_output = {
             "images": [
-                {"filename": "still.png", "subfolder": "", "type": "output"}
+                {"filename": "still.png", "subfolder": "", "type": "output"},
+                {"filename": "native.mp4", "subfolder": "", "type": "output"},
             ],
             "gifs": [
                 {"filename": "clip.mp4", "subfolder": "renders", "type": "output"}
@@ -544,6 +545,11 @@ class TestHandlerVideoOutputs(unittest.TestCase):
                     "type": "base64",
                     "data": base64.b64encode(b"clip.webm bytes").decode("utf-8"),
                 },
+                {
+                    "filename": "native.mp4",
+                    "type": "base64",
+                    "data": base64.b64encode(b"native.mp4 bytes").decode("utf-8"),
+                },
             ],
         )
         self.assertIn(
@@ -552,6 +558,10 @@ class TestHandlerVideoOutputs(unittest.TestCase):
         )
         self.assertIn(
             {"filename": ["clip.webm"], "subfolder": [""], "type": ["output"]},
+            view_requests,
+        )
+        self.assertIn(
+            {"filename": ["native.mp4"], "subfolder": [""], "type": ["output"]},
             view_requests,
         )
         mock_upload.assert_not_called()
