@@ -430,7 +430,7 @@ class TestHandlerPreflightOrdering(unittest.TestCase):
 
 
 class TestHandlerVideoOutputs(unittest.TestCase):
-    def _run_handler(self, node_output, use_s3=False):
+    def _run_handler(self, node_output, use_s3=False, bucket_prefix=""):
         uploaded_files = []
         view_requests = []
 
@@ -463,7 +463,13 @@ class TestHandlerVideoOutputs(unittest.TestCase):
             return "https://bucket.example/video"
 
         bucket_endpoint = "https://s3.example" if use_s3 else ""
-        with patch.dict(os.environ, {"BUCKET_ENDPOINT_URL": bucket_endpoint}):
+        with patch.dict(
+            os.environ,
+            {
+                "BUCKET_ENDPOINT_URL": bucket_endpoint,
+                "BUCKET_PREFIX": bucket_prefix,
+            },
+        ):
             with (
                 patch.object(
                     handler, "COMFY_HOST", f"127.0.0.1:{view_server.server_port}"
@@ -584,6 +590,19 @@ class TestHandlerVideoOutputs(unittest.TestCase):
             {"filename": ["clip.mp4"], "subfolder": ["renders"], "type": ["output"]},
             view_requests,
         )
+
+    def test_uses_bucket_prefix_for_video_uploads(self):
+        node_output = {
+            "videos": [
+                {"filename": "clip.mp4", "subfolder": "renders", "type": "output"}
+            ]
+        }
+
+        _, _, uploaded_files, _ = self._run_handler(
+            node_output, use_s3=True, bucket_prefix="/outputs/comfyui/"
+        )
+
+        self.assertEqual(uploaded_files[0][3], "outputs/comfyui/job-video")
 
 
 if __name__ == "__main__":

@@ -1131,10 +1131,14 @@ def handler(job):
                             extra_args = (
                                 {"ContentType": content_type} if content_type else None
                             )
+                            bucket_prefix = os.environ.get("BUCKET_PREFIX", "").strip("/")
+                            s3_prefix = (
+                                f"{bucket_prefix}/{job_id}" if bucket_prefix else job_id
+                            )
                             s3_url = rp_upload.upload_file_to_bucket(
-                                file_name=f"{uuid.uuid4().hex}{file_extension}",
+                                file_name=os.path.basename(filename),
                                 file_location=temp_video_path,
-                                prefix=job_id,
+                                prefix=s3_prefix,
                                 extra_args=extra_args,
                             )
                             output_data_videos.append(
