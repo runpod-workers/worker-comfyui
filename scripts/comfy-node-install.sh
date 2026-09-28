@@ -10,15 +10,15 @@ if [[ $# -eq 0 ]]; then
   exit 64  # EX_USAGE
 fi
 
-# ComfyUI runs with /opt/venv/bin/python; install custom-node dependencies there.
-export VIRTUAL_ENV=/opt/venv
+custom_nodes_dir="${COMFYUI_CUSTOM_NODES_DIR:-/comfyui/custom_nodes}"
+runtime_python="${COMFYUI_RUNTIME_PYTHON:-/opt/venv/bin/python}"
 
 log=$(mktemp)
 
-# run installation – some modes return non-zero even on success, so we
-# ignore the exit status and rely on log parsing instead.
+# Let comfy-cli use the ComfyUI workspace environment to install the node.
+# The worker runtime uses /opt/venv, so mirror node requirements there below.
 set +e
-comfy node install --mode=remote "$@" 2>&1 | tee "$log"
+env -u VIRTUAL_ENV comfy node install --mode=remote "$@" 2>&1 | tee "$log"
 cli_status=$?
 set -e
 
@@ -37,6 +37,13 @@ if [[ -n "$failed_nodes" ]]; then
   echo "Please verify the node names at https://registry.comfy.org/ and try again." >&2
   exit 1
 fi
+
+for requirements_file in "$custom_nodes_dir"/*/requirements.txt; do
+  if [[ ! -f "$requirements_file" ]]; then
+    continue
+  fi
+  uv pip install --python "$runtime_python" -r "$requirements_file"
+done
 
 # If we reach here no failed nodes were detected. Warn if CLI exit status
 # was non-zero but treat it as success.
