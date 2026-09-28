@@ -998,6 +998,7 @@ def handler(job):
 
         print(f"worker-comfyui - Processing {len(outputs)} output nodes...")
         for node_id, node_output in outputs.items():
+            native_video_outputs = []
             if "images" in node_output:
                 print(
                     f"worker-comfyui - Node {node_id} contains {len(node_output['images'])} image(s)"
@@ -1018,6 +1019,14 @@ def handler(job):
                         warn_msg = f"Skipping image in node {node_id} due to missing filename: {image_info}"
                         print(f"worker-comfyui - {warn_msg}")
                         errors.append(warn_msg)
+                        continue
+
+                    if os.path.splitext(filename)[1].lower() in (
+                        ".mp4",
+                        ".mkv",
+                        ".webm",
+                    ):
+                        native_video_outputs.append(image_info)
                         continue
 
                     image_bytes = get_output_data(filename, subfolder, img_type)
@@ -1088,6 +1097,8 @@ def handler(job):
 
             for video_key in ("gifs", "videos"):
                 video_outputs = node_output.get(video_key, [])
+                if video_key == "videos" and native_video_outputs:
+                    video_outputs = [*video_outputs, *native_video_outputs]
                 if video_outputs:
                     print(
                         f"worker-comfyui - Node {node_id} contains {len(video_outputs)} video(s)"
