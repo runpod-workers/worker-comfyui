@@ -10,6 +10,9 @@ if [[ $# -eq 0 ]]; then
   exit 64  # EX_USAGE
 fi
 
+# ComfyUI runs with /opt/venv/bin/python; install custom-node dependencies there.
+export VIRTUAL_ENV=/opt/venv
+
 log=$(mktemp)
 
 # run installation – some modes return non-zero even on success, so we
@@ -41,4 +44,4 @@ if [[ $cli_status -ne 0 ]]; then
   echo "Warning: comfy node install exited with status $cli_status but no errors were detected in the log — assuming success." >&2
 fi
 
-exit 0 
+exit 0
