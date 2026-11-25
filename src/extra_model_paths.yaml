@@ -1,4 +1,8 @@
 runpod_worker_comfy:
+  # Network volume is mounted to this path for serverless, see:
+  # https://docs.runpod.io/serverless/storage/network-volumes
+  # This is different from network volume mounted to pods, as shown in:
+  # https://docs.runpod.io/pods/storage/create-network-volumes
   base_path: /runpod-volume
   checkpoints: models/checkpoints/
   clip: models/clip/
