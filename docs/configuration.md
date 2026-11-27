@@ -44,7 +44,7 @@ Configure these variables **only** if you want the worker to upload generated im
 
 ### S3-Compatible Storage
 
-`BUCKET_ENDPOINT_URL` is passed to boto3 as the `endpoint_url`, so other S3-compatible object stores (for example, Backblaze B2, Cloudflare R2, or MinIO) work with the same three variables if they meet these requirements:
+`BUCKET_ENDPOINT_URL` is passed to boto3 as the `endpoint_url`, so other S3-compatible object stores (for example, Backblaze B2, Cloudflare R2, or MinIO with `MINIO_DOMAIN` set) work with the same three variables if they meet these requirements:
 
 - **Bucket in the host name:** Use `https://<your-bucket-name>.<s3-endpoint-host>`. The service must accept virtual-hosted-style requests. Objects are written under `<MM-YY>/<job_id>/` inside that bucket.
 - **Region:** The region is read from a `.s3.<region>.` segment of the host name, for example `https://<your-bucket-name>.s3.<region>.example.com`. If the host name has no such segment, set `AWS_DEFAULT_REGION` when your service requires a specific region.
