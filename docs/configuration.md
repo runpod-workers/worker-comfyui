@@ -42,6 +42,14 @@ Configure these variables **only** if you want the worker to upload generated im
 
 **Note:** Upload uses the `runpod` Python library helper `rp_upload.upload_image`, which handles creating a unique path within the bucket based on the `job_id`.
 
+### S3-Compatible Storage
+
+`BUCKET_ENDPOINT_URL` is passed to boto3 as the `endpoint_url`, so other S3-compatible object stores work with the same three variables if they meet these requirements:
+
+- **Bucket in the host name:** Use `https://<your-bucket-name>.<s3-endpoint-host>`. The service must accept virtual-hosted-style requests. Objects are written under `<MM-YY>/<job_id>/` inside that bucket.
+- **Region:** The region is read from a `.s3.<region>.` segment of the host name, for example `https://<your-bucket-name>.s3.<region>.example.com`. If the host name has no such segment, set `AWS_DEFAULT_REGION` when your service requires a specific region.
+- **Checksums:** Recent boto3 releases add CRC checksums to uploads by default. If your service rejects them (for example with `SignatureDoesNotMatch` or `InvalidArgument`), also set `AWS_REQUEST_CHECKSUM_CALCULATION=when_required` and `AWS_RESPONSE_CHECKSUM_VALIDATION=when_required`.
+
 ### Example S3 Response
 
 If the S3 environment variables (`BUCKET_ENDPOINT_URL`, `BUCKET_ACCESS_KEY_ID`, `BUCKET_SECRET_ACCESS_KEY`) are correctly configured, a successful job response will look similar to this:
